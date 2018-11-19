@@ -27,7 +27,7 @@ module ScimRails
     end
 
     def authorize(company)
-      authorized = ActiveSupport::SecurityUtils::secure_compare(company.api_key, api_key)
+      authorized = ActiveSupport::SecurityUtils.secure_compare(company.api_key, api_key)
       raise ScimRails::ExceptionHandler::InvalidCredentials unless authorized
     end
   end
