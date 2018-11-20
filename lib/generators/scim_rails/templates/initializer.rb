@@ -1,4 +1,5 @@
 ScimRails.configure do |config|
   config.basic_auth_model = "Company"
-  config.scim_user_model = "User"
+  config.scim_users_model = "User"
+  config.user_attributes = []
 end

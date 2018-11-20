@@ -12,11 +12,13 @@ module ScimRails
   class Config
     attr_accessor \
       :basic_auth_model,
+      :user_attributes,
       :scim_users_model
 
     def initialize
       @basic_auth_model = "Company"
       @scim_users_model = "User"
+      @user_attributes = []
     end
 
     def basic_auth_model
