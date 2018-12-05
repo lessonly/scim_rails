@@ -11,8 +11,8 @@ module ScimRails
     def authorize_request
       authenticate_with_http_basic do |username, password|
         authorization = AuthorizeApiRequest.new(
-          subdomain: username,
-          api_key: password
+          searchable_attribute: username,
+          authentication_attribute: password
         )
         @company = authorization.company
       end
