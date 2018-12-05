@@ -8,6 +8,9 @@ module ScimRails
     class InvalidCredentials < StandardError
     end
 
+    class InvalidQuery < StandardError
+    end
+
     included do
       rescue_from ScimRails::ExceptionHandler::InvalidCredentials do
         json_response(
@@ -20,14 +23,15 @@ module ScimRails
         )
       end
 
-      rescue_from ScimRails::ExceptionHandler::MissingCredentials do
+      rescue_from ScimRails::ExceptionHandler::InvalidQuery do
         json_response(
           {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
-            detail: "Authorization failure. The authorization header is invalid or missing.",
-            status: "401"
+            scimType: "invalidFilter",
+            detail: "The specified filter syntax was invalid, or the specified attribute and filter comparison combination is not supported.",
+            status: "400"
           },
-          :unauthorized
+          :bad_request
         )
       end
 
@@ -43,15 +47,26 @@ module ScimRails
       end
 
       rescue_from ActiveRecord::RecordInvalid do |e|
-        json_response(
-          {
-            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
-            scimType: "invalidValue",
-            detail: e.message,
-            status: "400"
-          },
-          :unprocessable_entity
-        )
+        case e.message
+        when /has already been taken/
+          json_response(
+            {
+              schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+              detail: e.message,
+              status: "409"
+            },
+            :conflict
+          )
+        else
+          json_response(
+            {
+              schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+              detail: e.message,
+              status: "422"
+            },
+            :unprocessable_entity
+          )
+        end
       end
     end
   end
