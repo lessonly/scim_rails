@@ -21,7 +21,7 @@ module ScimRails
     end
 
     def parameter
-      parameter = query_elements.dig(2)
+      parameter = query_elements[2..-1].join(" ")
       return if parameter.blank?
       parameter.gsub(/"/, "")
     end
