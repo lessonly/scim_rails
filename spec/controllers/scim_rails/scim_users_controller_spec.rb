@@ -9,6 +9,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     let(:company) { create(:company) }
 
     context "when unauthorized" do
+      it "returns scim+json content type" do
+        get :index
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
+      end
+
       it "fails with no credentials" do
         get :index
 
@@ -27,6 +33,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context "when when authorized" do
       before :each do
         http_login(company)
+      end
+
+      it "returns scim+json content type" do
+        get :index
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "is successful with valid credentials" do
@@ -134,6 +146,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     let(:company) { create(:company) }
 
     context "when unauthorized" do
+      it "returns scim+json content type" do
+        get :show, params: { id: 1 }
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
+      end
+
       it "fails with no credentials" do
         get :show, params: { id: 1 }
 
@@ -152,6 +170,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context "when authorized" do
       before :each do
         http_login(company)
+      end
+
+      it "returns scim+json content type" do
+        get :show, params: { id: 1 }
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "is successful with valid credentials" do
@@ -183,6 +207,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     let(:company) { create(:company) }
 
     context "when unauthorized" do
+      it "returns scim+json content type" do
+        post :create
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
+      end
+
       it "fails with no credentials" do
         post :create
 
@@ -201,6 +231,22 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context "when authorized" do
       before :each do
         http_login(company)
+      end
+
+      it "returns scim+json content type" do
+        post :create, params: {
+          name: {
+            givenName: "New",
+            familyName: "User"
+          },
+          emails: [
+            {
+              value: "new@example.com"
+            }
+          ]
+        }
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "is successful with valid credentials" do
@@ -307,6 +353,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     let(:company) { create(:company) }
 
     context "when unauthorized" do
+      it "returns scim+json content type" do
+        put :put_update, params: { id: 1 }
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
+      end
+
       it "fails with no credentials" do
         put :put_update, params: { id: 1 }
 
@@ -327,6 +379,25 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
       before :each do
         http_login(company)
+      end
+
+      it "returns scim+json content type" do
+        put :put_update, params: {
+          id: 1,
+          userName: "test@example.com",
+          name: {
+            givenName: "Test",
+            familyName: "User"
+          },
+          emails: [
+            {
+              value: "test@example.com"
+            },
+          ],
+          active: "true"
+        }
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "is successful with with valid credentials" do
@@ -385,6 +456,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     let(:company) { create(:company) }
 
     context "when unauthorized" do
+      it "returns scim+json content type" do
+        patch :patch_update, params: { id: 1 }
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
+      end
+
       it "fails with no credentials" do
         patch :patch_update, params: { id: 1 }
 
@@ -405,6 +482,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
       before :each do
         http_login(company)
+      end
+
+      it "returns scim+json content type" do
+        patch :patch_update, params: { id: 1 }
+  
+        expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "is successful with valid credentials" do

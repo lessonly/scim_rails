@@ -5,7 +5,8 @@ module ScimRails
     def json_response(object, status = :ok)
       render \
         json: object,
-        status: status
+        status: status,
+        content_type: CONTENT_TYPE
     end
 
     def json_scim_response(object:, status: :ok, counts: nil)
