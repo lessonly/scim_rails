@@ -18,8 +18,11 @@ Gem::Specification.new do |s|
 
   s.add_dependency "rails", "~> 5.0.0"
 
+  s.test_files = Dir["spec/**/*"]
+
   s.add_development_dependency "bundler", "~> 1.16"
+  s.add_development_dependency 'factory_bot_rails'
   s.add_development_dependency "rake", "~> 10.0"
-  s.add_development_dependency "rspec", "~> 3.0"
+  s.add_development_dependency "rspec-rails", "~> 3.0"
   s.add_development_dependency "sqlite3"
 end
