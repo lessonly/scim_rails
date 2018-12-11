@@ -191,7 +191,39 @@ $ curl -X PATCH http://username:password@localhost:3000/scim/v2/Users/1
 
 ## Contributing
 
-The pull request template can be found at 
+### [Code of Conduct](https://github.com/lessonly/scim_rails/blob/master/CODE_OF_CONDUCT.md)
+
+### Pull Requests
+
+Pull requests are welcome and encouraged! Please follow the default template format.
+
+[How to create a pull request from a fork.](https://help.github.com/articles/creating-a-pull-request-from-a-fork/)
+
+### Getting Started
+
+Clone (or fork) the project.
+
+Navigate to the top level of the project directory in your console and run `bundle install`.
+
+Proceed to setting up the dummy app.
+
+#### Dummy App
+
+This Gem contains a fully functional Rails application that lives in `/spec/dummy`.
+
+In the console, navigate to the dummy app at `/spec/dummy`.
+
+Next run `bin/setup` to setup the app. This will set up the gems and build the databases. The databases are local to the project.
+
+Last run `bundle exec rails server`.
+
+If you wish you may send CURL requests to the dummy server or send requests to it via Postman.
+
+### Specs
+
+Specs can be run with `rspec` at the top level of the project (if you run `rspec` and it shows zero specs try running `rspec` from a different directory).
+
+All specs should be passing. (The dummy app will need to be setup first.)
 
 ## License
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
