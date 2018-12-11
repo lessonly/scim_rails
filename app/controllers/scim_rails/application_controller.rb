@@ -16,6 +16,7 @@ module ScimRails
         )
         @company = authorization.company
       end
+      raise  ScimRails::ExceptionHandler::InvalidCredentials if @company.blank?
     end
   end
 end
