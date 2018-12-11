@@ -17,6 +17,7 @@ module ScimRails
       :mutable_user_attributes,
       :mutable_user_attributes_schema,
       :queryable_user_attributes,
+      :scim_users_list_order,
       :scim_users_model,
       :scim_users_scope,
       :user_attributes,
@@ -26,6 +27,7 @@ module ScimRails
       
     def initialize
       @basic_auth_model = "Company"
+      @scim_users_list_order = :id
       @scim_users_model = "User"
       @user_schema = {}
       @user_attributes = []
