@@ -2,9 +2,6 @@ module ScimRails
   module ExceptionHandler
     extend ActiveSupport::Concern
 
-    class MissingCredentials < StandardError
-    end
-
     class InvalidCredentials < StandardError
     end
 
@@ -71,11 +68,10 @@ module ScimRails
 
       ## StandardError must be ordered last or it will catch all exceptions
       if Rails.env.production?
-        rescue_from StandardError do |e|
+        rescue_from StandardError do
           json_response(
             {
               schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
-              detail: e.message,
               status: "500"
             },
             :internal_server_error
