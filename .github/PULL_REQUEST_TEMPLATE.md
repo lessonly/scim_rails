@@ -1,6 +1,6 @@
 ## Why?
 
-What is the problem this PR attempts to solve, and why is it important? Fixing a bug? Explain the problem you're solving. Laying a foundation for future work? Explain how this fits into the bigger picture. Don't forget to link to the Clubhouse issue above.
+What is the problem this PR attempts to solve, and why is it important? Fixing a bug? Explain the problem you're solving. Laying a foundation for future work? Explain how this fits into the bigger picture.
 
 ## What?
 
@@ -19,14 +19,6 @@ A list of things to test:
 - [ ] Test item 1
 - [ ] Test item 2
 - [ ] Test item 3
-
-## Deploy Tasks
-
-Note anything that needs to be done before, during, or after this change is deployed. Also add the “deploy task” label to this PR and the Clubhouse issue so it's obvious the next time we make a deployment.
-
-- [ ] Update the database things
-- [ ] Tell Client Experience this issue is now resolved
-- [ ] Confirm that emails are still being sent
 
 ## Alternatives Considered
 
