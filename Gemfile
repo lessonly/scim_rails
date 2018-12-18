@@ -10,5 +10,6 @@ gemspec
 # Git. Remember to move these dependencies to your gemspec before releasing
 # your gem to rubygems.org.
 
-# To use a debugger
-# gem 'byebug', group: [:development, :test]
+ruby '~> 2.4'
+
+gem 'pry', group: [:development, :test]
