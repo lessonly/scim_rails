@@ -80,7 +80,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "paginates results by configurable scim_users_list_order" do
-        ScimRails.config.scim_users_list_order = { created_at: :desc }
+        allow(ScimRails.config).to receive(:scim_users_list_order).and_return({ created_at: :desc })
 
         create_list(:user, 400, company: company)
         expect(company.users.first.id).to eq 1
@@ -93,8 +93,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(response_body["totalResults"]).to eq 400
         expect(response_body["Resources"].count).to eq 10
         expect(response_body.dig("Resources", 0, "id")).to eq 400
-
-        ScimRails.config.scim_users_list_order = nil
       end
 
       it "filters results by provided email filter" do
