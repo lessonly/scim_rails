@@ -72,6 +72,12 @@ https://example.com/example/scim/v2/Users
 
 ## Usage
 
+#### Content-Type
+
+When sending requests to the server the `Content-Type` should be set to `application/scim+json` but will also respond to `application/json`.
+
+All responses will be sent with a `Content-Type` of `application/scim+json, application/json`.
+
 ### List
 
 ##### All
@@ -79,7 +85,7 @@ https://example.com/example/scim/v2/Users
 Sample request:
 
 ```bash
-$ curl -X GET http://username:password@localhost:3000/scim/v2/Users
+$ curl -X GET 'http://username:password@localhost:3000/scim/v2/Users'
 ```
 
 ##### Pagination
@@ -93,7 +99,7 @@ This Gem provides two pagination filters; `startIndex` and `count`.
 Sample request:
 
 ```bash
-$ curl -X GET http://username:password@localhost:3000/scim/v2/Users?startIndex=38&count=44
+$ curl -X GET 'http://username:password@localhost:3000/scim/v2/Users?startIndex=38&count=44'
 ```
 
 Pagination only really works with a determinate order. What that means is, every time you call the database you need to get the results in the exact same order. So the 4th record is _always_ the 4th record and never appears in a different position. If there is no order then records might show up on multiple pages. **The default order is by id** but this can be configured with `scim_users_list_order`.
@@ -124,7 +130,7 @@ filter=(email eq test@example.com) or (userName eq test@example.com)
 Sample request:
 
 ```bash
-$ curl -X GET http://username:password@localhost:3000/scim/v2/Users?filter=formattedName%20eq%20%22Test%20User%22'
+$ curl -X GET 'http://username:password@localhost:3000/scim/v2/Users?filter=formattedName%20eq%20%22Test%20User%22'
 ```
 
 ### Show
@@ -152,7 +158,7 @@ This response can be modified in the configuration file. The `user_schema` confi
 Sample request:
 
 ```bash
-$ curl -X GET http://username:password@localhost:3000/scim/v2/Users/1
+$ curl -X GET 'http://username:password@localhost:3000/scim/v2/Users/1'
 ```
 
 ### Create
@@ -164,7 +170,7 @@ The create request can receive any SCIM compliant JSON but can only be parsed wi
 Sample request:
 
 ```bash
-$ curl -X POST http://username:password@localhost:3000/scim/v2/Users/ -d '{"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"],"userName":"test@example.com","name":{"givenName":"Test","familyName":"User"},"emails":[{"primary":true,"value":"test@example.com","type":"work"}],"displayName":"Test User","active":true}'
+$ curl -X POST 'http://username:password@localhost:3000/scim/v2/Users/' -d '{"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"],"userName":"test@example.com","name":{"givenName":"Test","familyName":"User"},"emails":[{"primary":true,"value":"test@example.com","type":"work"}],"displayName":"Test User","active":true}' -H 'Content-Type: application/scim+json'
 ```
 
 ### Update
@@ -174,7 +180,7 @@ Update requests follow the same guidelines as create requests. The request is pa
 Sample request:
 
 ```bash
-$ curl -X PUT http://username:password@localhost:3000/scim/v2/Users/1 -d '{"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"],"userName":"test@example.com","name":{"givenName":"Test","familyName":"User"},"emails":[{"primary":true,"value":"test@example.com","type":"work"}],"displayName":"Test User","active":true}'
+$ curl -X PUT 'http://username:password@localhost:3000/scim/v2/Users/1' -d '{"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"],"userName":"test@example.com","name":{"givenName":"Test","familyName":"User"},"emails":[{"primary":true,"value":"test@example.com","type":"work"}],"displayName":"Test User","active":true}' -H 'Content-Type: application/scim+json'
 ```
 
 ### Deprovision
@@ -186,7 +192,7 @@ We would like to implement PATCH to be fully SCIM compliant in future releases.
 Sample request:
 
 ```bash
-$ curl -X PATCH http://username:password@localhost:3000/scim/v2/Users/1
+$ curl -X PATCH 'http://username:password@localhost:3000/scim/v2/Users/1'
 ```
 
 ## Contributing
