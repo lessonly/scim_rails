@@ -245,11 +245,13 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
             }
           ]
         }
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "is successful with valid credentials" do
+        expect(company.users.count).to eq 0
+
         post :create, params: {
           name: {
             givenName: "New",
