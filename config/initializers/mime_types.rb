@@ -1,3 +1,5 @@
-ActionDispatch::Request.parameter_parsers[Mime::Type.lookup('application/scim+json').symbol] = lambda do |body|
-  JSON.parse(body)
+Mime::Type.register "application/scim+json", :scimjson
+
+ActionDispatch::Request.parameter_parsers[:scimjson] = lambda do |body|
+  ActiveSupport::JSON.decode(body)
 end
