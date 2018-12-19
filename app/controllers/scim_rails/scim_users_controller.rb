@@ -71,6 +71,14 @@ module ScimRails
       params.dig(*path_for(attribute))
     end
 
+    # `path_for` is a recursive method used to find the "path" for
+    # `.dig` to take when looking for a given attribute in the
+    # params.
+    #
+    # Example: `path_for(:name)` should return an array that looks
+    # like [:names, 0, :givenName]. `.dig` can then use that path
+    # against the params to translate the :name attribute to "John".
+
     def path_for(attribute, object = ScimRails.config.mutable_user_attributes_schema, path = [])
       at_path = path.empty? ? object : object.dig(*path)
       return path if at_path == attribute

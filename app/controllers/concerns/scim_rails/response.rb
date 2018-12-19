@@ -53,6 +53,14 @@ module ScimRails
       find_value(user, schema)
     end
 
+
+    # `find_value` is a recursive method that takes a "user" and a
+    # "user schema" and replaces any symbols in the schema with the
+    # corresponding value from the user. Given a schema with symbols,
+    # `find_value` will search through the object for the symbols,
+    # send those symbols to the model, and replace the symbol with
+    # the return value.
+
     def find_value(user, object)
       case object
       when Hash
