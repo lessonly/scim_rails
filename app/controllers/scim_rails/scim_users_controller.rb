@@ -11,25 +11,19 @@ module ScimRails
             query.parameter
           )
           .order(ScimRails.config.scim_users_list_order)
-
-        counts = ScimCount.new(
-          start_index: params[:startIndex],
-          limit: params[:count],
-          total: users.count
-        )
-        json_scim_response(object: users, counts: counts)
       else
         users = @company
           .public_send(ScimRails.config.scim_users_scope)
           .order(ScimRails.config.scim_users_list_order)
-
-        counts = ScimCount.new(
-          start_index: params[:startIndex],
-          limit: params[:count],
-          total: users.count
-        )
-        json_scim_response(object: users, counts: counts)
       end
+
+      counts = ScimCount.new(
+        start_index: params[:startIndex],
+        limit: params[:count],
+        total: users.count
+      )
+
+      json_scim_response(object: users, counts: counts)
     end
 
     def create
