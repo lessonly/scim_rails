@@ -1,0 +1,8 @@
+Description:
+    Generates the scim_rails initializer.
+
+Example:
+    rails generate scim_rails config
+
+    This will create:
+        config/initializers/scim_rails_config.rb
