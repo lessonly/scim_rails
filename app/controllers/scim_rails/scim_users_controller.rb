@@ -28,7 +28,7 @@ module ScimRails
 
     def create
       user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_user_params)
-      update_status(user) unless params[:active].nil?
+      update_status(user) unless put_active_param.nil?
       json_scim_response(object: user, status: :created)
     end
 
@@ -39,16 +39,15 @@ module ScimRails
 
     def put_update
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
-      update_status(user) unless params[:active].nil?
+      update_status(user) unless put_active_param.nil?
       user.update!(permitted_user_params)
       json_scim_response(object: user)
     end
 
-    # TODO: PATCH will only deprovision users regardless of params.
+    # TODO: PATCH will only deprovision or reprovision users.
     # This will work just fine for Okta but is not SCIM compliant.
     def patch_update
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
-      params[:active] = false
       update_status(user)
       json_scim_response(object: user)
     end
@@ -99,7 +98,8 @@ module ScimRails
     end
 
     def active?
-      case params[:active]
+      active = put_active_param || patch_active_param
+      case active
       when true, "true", 1
         true
       when false, "false", 0
@@ -107,6 +107,16 @@ module ScimRails
       else
         raise ActiveRecord::RecordInvalid
       end
+    end
+
+    def put_active_param
+      params[:active]
+    end
+
+    def patch_active_param
+      active = params.dig("Operations", 0, "value", "active")
+      raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if active.nil?
+      active
     end
   end
 end

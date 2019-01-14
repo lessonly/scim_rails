@@ -183,9 +183,9 @@ Sample request:
 $ curl -X PUT 'http://username:password@localhost:3000/scim/v2/Users/1' -d '{"schemas":["urn:ietf:params:scim:schemas:core:2.0:User"],"userName":"test@example.com","name":{"givenName":"Test","familyName":"User"},"emails":[{"primary":true,"value":"test@example.com","type":"work"}],"displayName":"Test User","active":true}' -H 'Content-Type: application/scim+json'
 ```
 
-### Deprovision
+### Deprovision / Reprovision
 
-The PATCH request was implemented to work with Okta. Okta updates profiles with PUT and deprovisions with PATCH. This implemention of PATCH is not SCIM compliant as it does not update a single attribute on the user profile but instead only sends a deprovision request.
+The PATCH request was implemented to work with Okta. Okta updates profiles with PUT and deprovisions / reprovisions with PATCH. This implemention of PATCH is not SCIM compliant as it does not update a single attribute on the user profile but instead only sends a status update request to the record.
 
 We would like to implement PATCH to be fully SCIM compliant in future releases.
 
