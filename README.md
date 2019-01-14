@@ -192,7 +192,7 @@ We would like to implement PATCH to be fully SCIM compliant in future releases.
 Sample request:
 
 ```bash
-$ curl -X PATCH 'http://username:password@localhost:3000/scim/v2/Users/1'
+$ curl -X PATCH 'http://username:password@localhost:3000/scim_rails/scim/v2/Users/1' -d '{"schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"], "Operations": [{"op": "replace", "value": { "active": false }}]}' -H 'Content-Type: application/scim+json'
 ```
 
 ## Contributing
