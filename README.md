@@ -4,7 +4,7 @@ NOTE: This Gem is not yet fully SCIM complaint. It was developed with the main f
 
 #### What is SCIM?
 
-SCIM stands for System for Cross-domain Identity Management. At its core, it is a set of rules defining how apps should interact for the purpose of creating, updating, and deprovisioning users. SCIM requests and responses can be sent in XML or JSON and this Gem uses JSON for ease of readabilty. 
+SCIM stands for System for Cross-domain Identity Management. At its core, it is a set of rules defining how apps should interact for the purpose of creating, updating, and deprovisioning users. SCIM requests and responses can be sent in XML or JSON and this Gem uses JSON for ease of readability. 
 
 To learn more about SCIM 2.0 you can read the documentation at [RFC 7643](https://tools.ietf.org/html/rfc7643) and [RFC 7644](https://tools.ietf.org/html/rfc7644).
 
@@ -92,7 +92,7 @@ $ curl -X GET 'http://username:password@localhost:3000/scim/v2/Users'
 
 This Gem provides two pagination filters; `startIndex` and `count`.
 
-`startIndex` is the positional number you would like to start at. This parameter can accept any integer but anything less than 1 will be interpreted as 1. If you visualize an array with all your user records in the array, `startIndex` is basically what element you would like to start at. If you are familiar with SQL this parameter is directly correlated to the query offset. **The default value for this fitler is 1.**
+`startIndex` is the positional number you would like to start at. This parameter can accept any integer but anything less than 1 will be interpreted as 1. If you visualize an array with all your user records in the array, `startIndex` is basically what element you would like to start at. If you are familiar with SQL this parameter is directly correlated to the query offset. **The default value for this filter is 1.**
 
 `count` is the number of records you would like present in the response. **The default value for this filter is 100.**
 
@@ -108,7 +108,7 @@ The pagination filters may be used on their own or in addition to the query filt
 
 ##### Querying
 
-Currently the only filter supported is a single level `eq`. More operators can be added failry easily in future releases. The SCIM RFC documents nested querying which is something we would like to implement in the future.
+Currently the only filter supported is a single level `eq`. More operators can be added fairly easily in future releases. The SCIM RFC documents nested querying which is something we would like to implement in the future.
 
 **Queryable attributes can be mapped in the configuration file.**
 
@@ -121,7 +121,7 @@ filter=formattedName eq Test User
 filter=id eq 1
 ```
 
-Unsuppored filter:
+Unsupported filter:
 
 ```
 filter=(email eq test@example.com) or (userName eq test@example.com)
@@ -185,14 +185,14 @@ $ curl -X PUT 'http://username:password@localhost:3000/scim/v2/Users/1' -d '{"sc
 
 ### Deprovision / Reprovision
 
-The PATCH request was implemented to work with Okta. Okta updates profiles with PUT and deprovisions / reprovisions with PATCH. This implemention of PATCH is not SCIM compliant as it does not update a single attribute on the user profile but instead only sends a status update request to the record.
+The PATCH request was implemented to work with Okta. Okta updates profiles with PUT and deprovisions / reprovisions with PATCH. This implementation of PATCH is not SCIM compliant as it does not update a single attribute on the user profile but instead only sends a status update request to the record.
 
 We would like to implement PATCH to be fully SCIM compliant in future releases.
 
 Sample request:
 
 ```bash
-$ curl -X PATCH 'http://username:password@localhost:3000/scim_rails/scim/v2/Users/1' -d '{"schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"], "Operations": [{"op": "replace", "value": { "active": false }}]}' -H 'Content-Type: application/scim+json'
+$ curl -X PATCH 'http://username:password@localhost:3000/scim/v2/Users/1' -d '{"schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"], "Operations": [{"op": "replace", "value": { "active": false }}]}' -H 'Content-Type: application/scim+json'
 ```
 
 ## Contributing
