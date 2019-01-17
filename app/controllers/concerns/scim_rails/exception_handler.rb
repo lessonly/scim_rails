@@ -8,6 +8,9 @@ module ScimRails
     class InvalidQuery < StandardError
     end
 
+    class UnsupportedPatchRequest < StandardError
+    end
+
     included do
       rescue_from ScimRails::ExceptionHandler::InvalidCredentials do
         json_response(
@@ -29,6 +32,17 @@ module ScimRails
             status: "400"
           },
           :bad_request
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::UnsupportedPatchRequest do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid PATCH request. This PATCH endpoint only supports deprovisioning and reprovisioning records.",
+            status: "422"
+          },
+          :unprocessable_entity
         )
       end
 

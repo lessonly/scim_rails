@@ -457,13 +457,13 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
     context "when unauthorized" do
       it "returns scim+json content type" do
-        patch :patch_update, params: { id: 1 }
+        patch :patch_update, params: patch_params(id: 1)
   
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "fails with no credentials" do
-        patch :patch_update, params: { id: 1 }
+        patch :patch_update, params: patch_params(id: 1)
 
         expect(response.status).to eq 401
       end
@@ -471,7 +471,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "fails with invalid credentials" do
         request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
 
-        patch :patch_update, params: { id: 1 }
+        patch :patch_update, params: patch_params(id: 1)
 
         expect(response.status).to eq 401
       end
@@ -485,19 +485,19 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "returns scim+json content type" do
-        patch :patch_update, params: { id: 1 }
+        patch :patch_update, params: patch_params(id: 1)
   
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "is successful with valid credentials" do
-        patch :patch_update, params: { id: 1 }
+        patch :patch_update, params: patch_params(id: 1)
 
         expect(response.status).to eq 200
       end
 
       it "returns :not_found for id that cannot be found" do
-        get :patch_update, params: { id: "fake_id" }
+        get :patch_update, params: patch_params(id: "fake_id")
 
         expect(response.status).to eq 404
       end
@@ -506,7 +506,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         new_company = create(:company)
         create(:user, company: new_company, id: 1000)
 
-        get :patch_update, params: { id: 1000 }
+        get :patch_update, params: patch_params(id: 1000)
 
         expect(response.status).to eq 404
       end
@@ -516,13 +516,60 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         user = company.users.first
         expect(user.archived?).to eq false
 
-        patch :patch_update, params: { id: 1 }
+        patch :patch_update, params: patch_params(id: 1)
 
         expect(response.status).to eq 200
         expect(company.users.count).to eq 1
         user.reload
         expect(user.archived?).to eq true
       end
+
+      it "sucessfully restores user" do
+        expect(company.users.count).to eq 1
+        user = company.users.first.tap(&:archive!)
+        expect(user.archived?).to eq true
+
+        patch :patch_update, params: patch_params(id: 1,  active: true)
+
+        expect(response.status).to eq 200
+        expect(company.users.count).to eq 1
+        user.reload
+        expect(user.archived?).to eq false
+      end
+
+      it "throws an error for non status updates" do
+        patch :patch_update, params: {
+          id: 1,
+          Operations: [
+            {
+              op: "replace",
+              value: {
+                name: {
+                  givenName: "Francis"
+                }
+              }
+            }
+          ]
+        }
+
+        expect(response.status).to eq 422
+        response_body = JSON.parse(response.body)
+        expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
+      end
     end
+  end
+
+  def patch_params(id:, active: false)
+    {
+      id: id,
+      Operations: [
+        {
+          op: "replace",
+          value: {
+            active: active
+          }
+        }
+      ]
+    }
   end
 end
