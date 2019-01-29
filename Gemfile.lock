@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    scim_rails (0.1.1)
+    scim_rails (0.1.2)
       rails (~> 5.0.0)
 
 GEM
