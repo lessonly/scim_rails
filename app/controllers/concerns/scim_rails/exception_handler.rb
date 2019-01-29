@@ -12,6 +12,22 @@ module ScimRails
     end
 
     included do
+      # StandardError must be ordered _first_ or it will catch all exceptions
+      #
+      # TODO: Build a plugin/configuration for error handling so that the
+      # detailed production errors are logged somewhere if desired.
+      if Rails.env.production?
+        rescue_from StandardError do
+          json_response(
+            {
+              schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+              status: "500"
+            },
+            :internal_server_error
+          )
+        end
+      end
+
       rescue_from ScimRails::ExceptionHandler::InvalidCredentials do
         json_response(
           {
@@ -76,19 +92,6 @@ module ScimRails
               status: "422"
             },
             :unprocessable_entity
-          )
-        end
-      end
-
-      ## StandardError must be ordered last or it will catch all exceptions
-      if Rails.env.production?
-        rescue_from StandardError do
-          json_response(
-            {
-              schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
-              status: "500"
-            },
-            :internal_server_error
           )
         end
       end
