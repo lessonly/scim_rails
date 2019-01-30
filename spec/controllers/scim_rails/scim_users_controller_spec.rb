@@ -382,41 +382,33 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "returns scim+json content type" do
-        put :put_update, params: {
-          id: 1,
-          userName: "test@example.com",
-          name: {
-            givenName: "Test",
-            familyName: "User"
-          },
-          emails: [
-            {
-              value: "test@example.com"
-            },
-          ],
-          active: "true"
-        }
+        put :put_update, params: put_params
   
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
       it "is successful with with valid credentials" do
-        put :put_update, params: {
-          id: 1,
-          userName: "test@example.com",
-          name: {
-            givenName: "Test",
-            familyName: "User"
-          },
-          emails: [
-            {
-              value: "test@example.com"
-            },
-          ],
-          active: "true"
-        }
+        put :put_update, params: put_params
 
         expect(response.status).to eq 200
+      end
+
+      it "deprovisions an active record" do
+        request.content_type = "application/scim+json"
+        put :put_update, params: put_params(active: false)
+
+        expect(response.status).to eq 200
+        expect(user.reload.active?).to eq false
+      end
+
+      it "reprovisions an inactive record" do
+        user.archive!
+        expect(user.reload.active?).to eq false
+        request.content_type = "application/scim+json"
+        put :put_update, params: put_params(active: true)
+
+        expect(response.status).to eq 200
+        expect(user.reload.active?).to eq true
       end
 
       it "returns :not_found for id that cannot be found" do
@@ -570,6 +562,23 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           }
         }
       ]
+    }
+  end
+
+  def put_params(active: true)
+    {
+      id: 1,
+      userName: "test@example.com",
+      name: {
+        givenName: "Test",
+        familyName: "User"
+      },
+      emails: [
+        {
+          value: "test@example.com"
+        },
+      ],
+      active: active
     }
   end
 end
