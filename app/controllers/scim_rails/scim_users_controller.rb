@@ -98,7 +98,9 @@ module ScimRails
     end
 
     def active?
-      active = put_active_param || patch_active_param
+      active = put_active_param
+      active = patch_active_param if active.nil?
+
       case active
       when true, "true", 1
         true

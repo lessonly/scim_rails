@@ -419,6 +419,27 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(response.status).to eq 200
       end
 
+      it "archives an inactive record" do
+        request.content_type = "application/scim+json"
+        put :put_update, params: {
+          id: 1,
+          userName: "test@example.com",
+          name: {
+            givenName: "Test",
+            familyName: "User"
+          },
+          emails: [
+            {
+              value: "test@example.com"
+            },
+          ],
+          active: false
+        }
+
+        expect(response.status).to eq 200
+        expect(user.reload.active?).to eq false
+      end
+
       it "returns :not_found for id that cannot be found" do
         get :put_update, params: { id: "fake_id" }
 
