@@ -305,12 +305,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(company.users.count).to eq 0
       end
 
-      it "returns 201 if user already exists" do
+      it "returns 201 if user already exists and updates user" do
         create(:user, email: "new@example.com", company: company)
 
         post :create, params: {
           name: {
-            givenName: "New",
+            givenName: "Not New",
             familyName: "User"
           },
           emails: [
@@ -322,6 +322,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
         expect(response.status).to eq 201
         expect(company.users.count).to eq 1
+        expect(company.users.first.first_name).to eq "Not New"
       end
 
       it "creates and archives inactive user" do
