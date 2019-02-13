@@ -11,7 +11,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context "when unauthorized" do
       it "returns scim+json content type" do
         get :index
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
@@ -37,7 +37,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
       it "returns scim+json content type" do
         get :index
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
@@ -146,7 +146,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context "when unauthorized" do
       it "returns scim+json content type" do
         get :show, params: { id: 1 }
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
@@ -172,7 +172,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
       it "returns scim+json content type" do
         get :show, params: { id: 1 }
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
@@ -207,7 +207,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context "when unauthorized" do
       it "returns scim+json content type" do
         post :create
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
@@ -305,12 +305,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(company.users.count).to eq 0
       end
 
-      it "returns 409 if user already exists" do
+      it "returns 201 if user already exists and updates user" do
         create(:user, email: "new@example.com", company: company)
 
         post :create, params: {
           name: {
-            givenName: "New",
+            givenName: "Not New",
             familyName: "User"
           },
           emails: [
@@ -320,8 +320,9 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           ]
         }
 
-        expect(response.status).to eq 409
+        expect(response.status).to eq 201
         expect(company.users.count).to eq 1
+        expect(company.users.first.first_name).to eq "Not New"
       end
 
       it "creates and archives inactive user" do
@@ -355,7 +356,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context "when unauthorized" do
       it "returns scim+json content type" do
         put :put_update, params: { id: 1 }
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
@@ -383,7 +384,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
       it "returns scim+json content type" do
         put :put_update, params: put_params
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
@@ -450,7 +451,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context "when unauthorized" do
       it "returns scim+json content type" do
         patch :patch_update, params: patch_params(id: 1)
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
@@ -478,7 +479,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
       it "returns scim+json content type" do
         patch :patch_update, params: patch_params(id: 1)
-  
+
         expect(response.content_type).to eq "application/scim+json, application/json"
       end
 
