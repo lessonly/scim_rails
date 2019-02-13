@@ -28,11 +28,11 @@ module ScimRails
 
     def create
       username_key = ScimRails.config.queryable_user_attributes[:userName]
-      username_create_hash = Hash.new
-      username_create_hash[username_key] = permitted_user_params[username_key]
+      find_by_username = Hash.new
+      find_by_username[username_key] = permitted_user_params[username_key]
       user = @company
         .public_send(ScimRails.config.scim_users_scope)
-        .find_or_create_by(username_create_hash)
+        .find_or_create_by(find_by_username)
       user.update!(permitted_user_params)
       update_status(user) unless put_active_param.nil?
       json_scim_response(object: user, status: :created)
