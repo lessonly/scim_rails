@@ -1,6 +1,6 @@
 module ScimRails
   module Response
-    CONTENT_TYPE = "application/scim+json, application/json".freeze
+    CONTENT_TYPE = "application/scim+json".freeze
 
     def json_response(object, status = :ok)
       render \
