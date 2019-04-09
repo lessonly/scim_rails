@@ -4,7 +4,7 @@ NOTE: This Gem is not yet fully SCIM complaint. It was developed with the main f
 
 #### What is SCIM?
 
-SCIM stands for System for Cross-domain Identity Management. At its core, it is a set of rules defining how apps should interact for the purpose of creating, updating, and deprovisioning users. SCIM requests and responses can be sent in XML or JSON and this Gem uses JSON for ease of readability. 
+SCIM stands for System for Cross-domain Identity Management. At its core, it is a set of rules defining how apps should interact for the purpose of creating, updating, and deprovisioning users. SCIM requests and responses can be sent in XML or JSON and this Gem uses JSON for ease of readability.
 
 To learn more about SCIM 2.0 you can read the documentation at [RFC 7643](https://tools.ietf.org/html/rfc7643) and [RFC 7644](https://tools.ietf.org/html/rfc7644).
 
@@ -76,7 +76,7 @@ https://example.com/example/scim/v2/Users
 
 When sending requests to the server the `Content-Type` should be set to `application/scim+json` but will also respond to `application/json`.
 
-All responses will be sent with a `Content-Type` of `application/scim+json, application/json`.
+All responses will be sent with a `Content-Type` of `application/scim+json`.
 
 ### List
 
