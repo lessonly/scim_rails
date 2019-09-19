@@ -325,6 +325,26 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(company.users.first.first_name).to eq "Not New"
       end
 
+      it "returns 409 if user already exists and config.scim_user_prevent_update_on_create is set to true" do
+        allow(ScimRails.config).to receive(:scim_user_prevent_update_on_create).and_return(true)
+        create(:user, email: "new@example.com", company: company)
+
+        post :create, params: {
+          name: {
+            givenName: "Not New",
+            familyName: "User"
+          },
+          emails: [
+            {
+              value: "new@example.com"
+            }
+          ]
+        }
+
+        expect(response.status).to eq 409
+        expect(company.users.count).to eq 1
+      end
+
       it "creates and archives inactive user" do
         post :create, params: {
           id: 1,
