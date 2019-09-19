@@ -27,7 +27,9 @@ module ScimRails
     end
 
     def create
-      unless ScimRails.config.scim_user_prevent_update_on_create
+      if ScimRails.config.scim_user_prevent_update_on_create
+        user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_user_params)
+      else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
         find_by_username = Hash.new
         find_by_username[username_key] = permitted_user_params[username_key]
@@ -35,8 +37,6 @@ module ScimRails
           .public_send(ScimRails.config.scim_users_scope)
           .find_or_create_by(find_by_username)
         user.update!(permitted_user_params)
-      else
-        user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_user_params)
       end
       update_status(user) unless put_active_param.nil?
       json_scim_response(object: user, status: :created)
