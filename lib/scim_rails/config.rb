@@ -20,11 +20,12 @@ module ScimRails
       :scim_users_list_order,
       :scim_users_model,
       :scim_users_scope,
+      :scim_user_prevent_update_on_create,
       :user_attributes,
       :user_deprovision_method,
       :user_reprovision_method,
       :user_schema
-      
+
     def initialize
       @basic_auth_model = "Company"
       @scim_users_list_order = :id

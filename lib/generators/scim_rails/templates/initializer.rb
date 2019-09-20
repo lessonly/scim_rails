@@ -18,6 +18,10 @@ ScimRails.configure do |config|
   # authenticatable model.
   config.scim_users_scope = :users
 
+  # Determine whether the create endpoint updates users that already exist
+  # or throws an error (returning 409 Conflict in accordance with SCIM spec)
+  config.scim_user_prevent_update_on_create = false
+
   # Default sort order for pagination is by id. If you
   # use non sequential ids for user records, uncomment
   # the below line and configure a determinate order.
@@ -33,7 +37,7 @@ ScimRails.configure do |config|
   # Hash of queryable attribtues on the user model. If
   # the attribute is not listed in this hash it cannot
   # be queried by this Gem. The structure of this hash
-  # is { queryable_scim_attribute => user_attribute }. 
+  # is { queryable_scim_attribute => user_attribute }.
   config.queryable_user_attributes = {
     userName: :email,
     givenName: :first_name,
@@ -54,7 +58,7 @@ ScimRails.configure do |config|
   # for this Gem to figure out where to look in a SCIM
   # response for mutable values. This object should
   # include all attributes listed in
-  # config.mutable_user_attributes. 
+  # config.mutable_user_attributes.
   config.mutable_user_attributes_schema = {
     name: {
       givenName: :first_name,
