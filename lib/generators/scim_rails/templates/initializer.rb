@@ -20,7 +20,7 @@ ScimRails.configure do |config|
 
   # Determine whether the create endpoint updates users that already exist
   # or throws an error (returning 409 Conflict in accordance with SCIM spec)
-  config.scim_user_prevent_update_on_create = :false
+  config.scim_user_prevent_update_on_create = false
 
   # Default sort order for pagination is by id. If you
   # use non sequential ids for user records, uncomment
