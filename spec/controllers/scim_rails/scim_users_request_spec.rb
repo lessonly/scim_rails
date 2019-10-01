@@ -9,21 +9,21 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
     # params need to be transformed into a string to test if they are being parsed by Rack
 
     post "/scim_rails/scim/v2/Users",
-    params: {
-      name: {
-        givenName: "New",
-        familyName: "User"
-      },
-      emails: [
-        {
-          value: "new@example.com"
-        }
-      ]
-    }.to_json,
-    headers: {
-      'Authorization': authorization,
-      'Content-Type': content_type
-    }
+         params: {
+           name: {
+             givenName: "New",
+             familyName: "User",
+           },
+           emails: [
+             {
+               value: "new@example.com",
+             },
+           ],
+         }.to_json,
+         headers: {
+           'Authorization': authorization,
+           'Content-Type': content_type,
+         }
   end
 
   describe "Content-Type" do
@@ -41,7 +41,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
     it "can not parse unfamiliar content types" do
       expect(company.users.count).to eq 0
 
-      post_request("invalid_type")
+      post_request("text/csv")
 
       expect(request.params).not_to include :name
       expect(response.status).to eq 422
