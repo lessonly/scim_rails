@@ -537,7 +537,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(user.archived?).to eq true
       end
 
-      it "sucessfully restores user" do
+      it "successfully restores user" do
         expect(company.users.count).to eq 1
         user = company.users.first.tap(&:archive!)
         expect(user.archived?).to eq true
