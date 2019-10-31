@@ -78,6 +78,23 @@ When sending requests to the server the `Content-Type` should be set to `applica
 
 All responses will be sent with a `Content-Type` of `application/scim+json`.
 
+#### Authentication
+
+This gem supports both basic and OAuth bearer authentication.
+
+##### Basic Auth
+
+```bash
+$ curl -X GET 'http://username:password@localhost:3000/scim/v2/Users'
+```
+
+##### OAuth Bearer
+
+```bash
+$ curl -H 'Authorization: Bearer xxxxxxx.xxxxxx' -X GET 'http://localhost:3000/scim/v2/Users'
+```
+
+
 ### List
 
 ##### All
