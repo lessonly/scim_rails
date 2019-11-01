@@ -9,10 +9,10 @@ module ScimRails
     private
 
     def authorize_request
-      send(authentication_strategy) do |username, password|
+      send(authentication_strategy) do |searchable_attribute, authentication_attribute|
         authorization = AuthorizeApiRequest.new(
-          searchable_attribute: username,
-          authentication_attribute: password
+          searchable_attribute: searchable_attribute,
+          authentication_attribute: authentication_attribute
         )
         @company = authorization.company
       end
@@ -28,11 +28,11 @@ module ScimRails
     end
 
     def authenticate_with_oauth_bearer
-      token = request.headers["Authorization"].split(" ").last
-      payload = ScimRails::Encoder.decode(token).with_indifferent_access
+      authentication_attribute = request.headers["Authorization"].split(" ").last
+      payload = ScimRails::Encoder.decode(authentication_attribute).with_indifferent_access
       searchable_attribute = payload[ScimRails.config.basic_auth_model_searchable_attribute]
 
-      yield searchable_attribute, token
+      yield searchable_attribute, authentication_attribute
     end
   end
 end
