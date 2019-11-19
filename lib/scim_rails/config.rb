@@ -10,6 +10,8 @@ module ScimRails
   end
 
   class Config
+    ALGO_NONE = "none".freeze
+
     attr_accessor \
       :basic_auth_model,
       :basic_auth_model_authenticatable_attribute,
@@ -21,6 +23,8 @@ module ScimRails
       :scim_users_model,
       :scim_users_scope,
       :scim_user_prevent_update_on_create,
+      :signing_secret,
+      :signing_algorithm,
       :user_attributes,
       :user_deprovision_method,
       :user_reprovision_method,
@@ -30,6 +34,7 @@ module ScimRails
       @basic_auth_model = "Company"
       @scim_users_list_order = :id
       @scim_users_model = "User"
+      @signing_algorithm = ALGO_NONE
       @user_schema = {}
       @user_attributes = []
     end

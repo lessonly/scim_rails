@@ -22,6 +22,18 @@ ScimRails.configure do |config|
   # or throws an error (returning 409 Conflict in accordance with SCIM spec)
   config.scim_user_prevent_update_on_create = false
 
+  # Cryptographic algorithm used for signing the auth tokens.
+  # It supports all algorithms supported by the jwt gem.
+  # See https://github.com/jwt/ruby-jwt#algorithms-and-usage for supported algorithms
+  # It is "none" by default, hence generated tokens are unsigned
+  # The tokens do not need to be signed if you only need basic authentication.
+  # config.signing_algorithm = "HS256"
+
+  # Secret token used to sign authorization tokens
+  # It is `nil` by default, hence generated tokens are unsigned
+  # The tokens do not need to be signed if you only need basic authentication.
+  # config.signing_secret = SECRET_TOKEN
+
   # Default sort order for pagination is by id. If you
   # use non sequential ids for user records, uncomment
   # the below line and configure a determinate order.

@@ -1,7 +1,8 @@
 PATH
   remote: .
   specs:
-    scim_rails (0.2.1)
+    scim_rails (0.3.0)
+      jwt (~> 2.2)
       rails (>= 5.0, < 6.1)
 
 GEM
@@ -77,6 +78,7 @@ GEM
       activesupport (>= 4.2.0)
     i18n (1.6.0)
       concurrent-ruby (~> 1.0)
+    jwt (2.2.1)
     loofah (2.3.1)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -175,4 +177,4 @@ RUBY VERSION
    ruby 2.4.4p296
 
 BUNDLED WITH
-   2.0.1
+   2.0.2

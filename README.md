@@ -78,6 +78,57 @@ When sending requests to the server the `Content-Type` should be set to `applica
 
 All responses will be sent with a `Content-Type` of `application/scim+json`.
 
+#### Authentication
+
+This gem supports both basic and OAuth bearer authentication.
+
+##### Basic Auth
+###### Username
+The config setting `basic_auth_model_searchable_attribute` is the model attribute used to authenticate as the `username`. It defaults to `:subdomain`.
+
+Ensure it is unique to the model records.
+
+###### Password
+The config setting `basic_auth_model_authenticatable_attribute` is the model attribute used to authenticate as `password`. Defaults to `:api_token`.
+
+Assuming the attribute is `:api_token`, generate the password using:
+```ruby
+token = ScimRails::Encoder.encode(company)
+# use the token as password for requests
+company.api_token = token # required
+company.save! # don't forget to persist the company record
+```
+
+This is necessary irrespective of your authentication choice(s) - basic auth, oauth bearer or both.
+
+###### Sample Request
+
+```bash
+$ curl -X GET 'http://username:password@localhost:3000/scim/v2/Users'
+```
+
+##### OAuth Bearer
+
+###### Signing Algorithm
+In the config settings, ensure you set `signing_algorithm` to a valid JWT signing algorithm, e.g "HS256". Defaults to `"none"` when not set.
+
+###### Signing Secret
+In the config settings, ensure you set `signing_secret` to a secret key that will be used to encode and decode tokens. Defaults to `nil` when not set.
+
+If you have already generated the `api_token` in the "Basic Auth" section, then use that as your bearer token and ignore the steps below:
+```ruby
+token = ScimRails::Encoder.encode(company)
+# use the token as bearer token for requests
+company.api_token = token #required
+company.save! # don't forget to persist the company record
+```
+
+##### Sample Request
+
+```bash
+$ curl -H 'Authorization: Bearer xxxxxxx.xxxxxx' -X GET 'http://localhost:3000/scim/v2/Users'
+```
+
 ### List
 
 ##### All
