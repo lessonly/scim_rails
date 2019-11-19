@@ -91,11 +91,15 @@ Ensure it is unique to the model records.
 ###### Password
 The config setting `basic_auth_model_authenticatable_attribute` is the model attribute used to authenticate as `password`. Defaults to `:api_token`.
 
-Assuming your model is `Company` and attribute is `:api_token`, you can generate the token using:
+Assuming the attribute is `:api_token`, generate the password using:
 ```ruby
-company.api_token = ScimRails::Encoder.encode(company)
-# don't forget to persist the record
+token = ScimRails::Encoder.encode(company)
+# use the token as password for requests
+company.api_token = token # required
+company.save! # don't forget to persist the company record
 ```
+
+This is necessary irrespective of your authentication choice(s) - basic auth, oauth bearer or both.
 
 ###### Sample Request
 
@@ -109,11 +113,14 @@ $ curl -X GET 'http://username:password@localhost:3000/scim/v2/Users'
 In the config settings, ensure you set `signing_algorithm` to a valid JWT signing algorithm, e.g "HS256". Defaults to `"none"` when not set.
 
 ###### Signing Secret
-In the config settings, ensure you set `signing_secret` to a valid token generated using this gem. Defaults to `nil` when not set.
+In the config settings, ensure you set `signing_secret` to a secret key that will be used to encode and decode tokens. Defaults to `nil` when not set.
 
-Generating a signing secret:
+If you have already generated the `api_token` in the "Basic Auth" section, then use that as your bearer token and ignore the steps below:
 ```ruby
-ScimRails::Encoder.encode(company)
+token = ScimRails::Encoder.encode(company)
+# use the token as bearer token for requests
+company.api_token = token #required
+company.save! # don't forget to persist the company record
 ```
 
 ##### Sample Request
