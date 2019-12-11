@@ -12,7 +12,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         get :index
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -38,7 +38,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         get :index
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "is successful with valid credentials" do
@@ -147,7 +147,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         get :show, params: { id: 1 }
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -173,7 +173,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         get :show, params: { id: 1 }
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "is successful with valid credentials" do
@@ -208,7 +208,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         post :create
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -244,7 +244,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           ]
         }
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "is successful with valid credentials" do
@@ -377,7 +377,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         put :put_update, params: { id: 1 }
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -405,7 +405,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         put :put_update, params: put_params
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "is successful with with valid credentials" do
@@ -472,7 +472,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         patch :patch_update, params: patch_params(id: 1)
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -500,7 +500,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "returns scim+json content type" do
         patch :patch_update, params: patch_params(id: 1)
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "is successful with valid credentials" do
