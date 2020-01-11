@@ -1,10 +1,11 @@
 module ScimRails
-  class ApplicationController < ActionController::API
+  class ApplicationController < ActionController::Base
     include ActionController::HttpAuthentication::Basic::ControllerMethods
     include ExceptionHandler
     include Response
 
     before_action :authorize_request
+    protect_from_forgery with: :null_session
 
     private
 
