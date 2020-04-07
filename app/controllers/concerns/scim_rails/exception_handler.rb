@@ -66,7 +66,7 @@ module ScimRails
         json_response(
           {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
-            detail: "Resource #{e.id} not found.",
+            detail: "Resource #{not_found_id_backport(e)} not found.",
             status: "404"
           },
           :not_found
@@ -94,6 +94,20 @@ module ScimRails
             :unprocessable_entity
           )
         end
+      end
+
+      def not_found_class_name_backport(e)
+        ActiveSupport::Deprecation.warn('not required in Rails 5+') if Rails.version >= '5'
+        e.message.match(/find (.*?)\s/)[1].to_s
+      rescue NoMethodError
+        ""
+      end
+
+      def not_found_id_backport(e)
+        ActiveSupport::Deprecation.warn('not required in Rails 5+') if Rails.version >= '5'
+        e.message.match(/'id'=(.*?)\s/)[1].to_s
+      rescue NoMethodError
+        ""
       end
     end
   end
