@@ -14,8 +14,9 @@ Gem::Specification.new do |s|
   s.description = "SCIM Adapter for Rails."
   s.license = "MIT"
 
-  s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
-
+  s.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  s.require_paths = ["lib"]
+  
   s.required_ruby_version = "~> 2.4"
   s.add_dependency "rails", ">= 4.2", "< 5.0"
   s.add_runtime_dependency "jwt", "~> 1.5.1"
@@ -26,5 +27,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rake", "~> 10.0"
   s.add_development_dependency "rspec-rails", "~> 3.0"
   s.add_development_dependency "pry-rescue"
+  s.add_development_dependency "byebug"
+  s.add_development_dependency "awesome_print"
   s.add_development_dependency "sqlite3" #, "~> 1.3", "< 1.5"
 end

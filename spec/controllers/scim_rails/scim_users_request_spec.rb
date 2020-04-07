@@ -34,7 +34,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
 
       expect(request.params).to include :name
       expect(response.status).to eq 201
-      expect(response.media_type).to eq "application/scim+json"
+      expect(response.content_type).to eq "application/scim+json"
       expect(company.users.count).to eq 1
     end
 

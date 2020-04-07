@@ -12,7 +12,4 @@ gemspec
 
 ruby '~> 2.4'
 
-gem 'sqlite3', '~> 1.3.6'
-gem 'rails', '~> 4.2.11.1'
-
 gem 'pry', group: [:development, :test]
