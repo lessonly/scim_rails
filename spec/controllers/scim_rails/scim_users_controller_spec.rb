@@ -415,7 +415,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "deprovisions an active record" do
-        request.content_type = "application/scim+json"
+        request.format = "application/scim+json"
         put :put_update, put_params(active: false)
 
         expect(response.status).to eq 200
@@ -425,7 +425,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "reprovisions an inactive record" do
         user.archive!
         expect(user.reload.active?).to eq false
-        request.content_type = "application/scim+json"
+        request.format = "application/scim+json"
         put :put_update, put_params(active: true)
 
         expect(response.status).to eq 200
