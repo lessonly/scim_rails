@@ -1,5 +1,7 @@
-require "spec_helper"
+require 'spec_helper'
 
-RSpec.describe ScimRails::ScimGroupsController, type: :request do
-  
+module ScimRails
+  RSpec.describe ScimRails::ScimGroupsController, type: :request do
+    
+  end
 end
