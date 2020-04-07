@@ -28,7 +28,9 @@ module ScimRails
       :user_attributes,
       :user_deprovision_method,
       :user_reprovision_method,
-      :user_schema
+      :user_schema,
+      :group_schema,
+      :group_attributes
 
     def initialize
       @basic_auth_model = "Company"
@@ -36,7 +38,9 @@ module ScimRails
       @scim_users_model = "User"
       @signing_algorithm = ALGO_NONE
       @user_schema = {}
+      @group_schema = {}
       @user_attributes = []
+      @group_attributes = []
     end
 
     def mutable_user_attributes_schema

@@ -6,7 +6,9 @@ module ScimRails
     end
 
     def create
+      group = @company.public_send(ScimRails.config.scim_group_scope).create!(permitted_group_params)
 
+      json_scim_response(object: group, status: :created)
     end
 
     def show
@@ -23,5 +25,8 @@ module ScimRails
 
     private
 
+    def permitted_group_params
+      params.permit()
+    end
   end
 end

@@ -22,6 +22,10 @@ ScimRails.configure do |config|
   # or throws an error (returning 409 Conflict in accordance with SCIM spec)
   config.scim_user_prevent_update_on_create = false
 
+  # Determine whether the create endpoint updates groups that already exist
+  # or throws an error (returning 409 Conflict in accordance with SCIM spec)
+  config.scim_group_prevent_update_on_create = false
+
   # Cryptographic algorithm used for signing the auth tokens.
   # It supports all algorithms supported by the jwt gem.
   # See https://github.com/jwt/ruby-jwt#algorithms-and-usage for supported algorithms
@@ -104,5 +108,18 @@ ScimRails.configure do |config|
       },
     ],
     active: :active?
+  }
+
+  config.group_schema = {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Group"],
+    id: :id,
+    displayName: :display_name,
+    members: :members,
+    active: :active?
+  }
+
+  config.mutable_group_attributes = {
+    :displayName,
+    :members
   }
 end
