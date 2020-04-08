@@ -1,8 +1,7 @@
 module ScimRails
   class ScimGroupsController < ScimRails::ApplicationController
-
     def index
-      
+
     end
 
     def create
@@ -12,7 +11,7 @@ module ScimRails
     end
 
     def show
-    
+      
     end
 
     def put_update

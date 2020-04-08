@@ -1,7 +1,5 @@
 require 'spec_helper'
 
-module ScimRails
-  RSpec.describe ScimRails::ScimGroupsController, type: :request do
-    
-  end
+RSpec.describe ScimRails::ScimGroupsController, type: :request do
+  include AuthHelper
 end
