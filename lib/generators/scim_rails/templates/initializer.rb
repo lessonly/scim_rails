@@ -14,6 +14,9 @@ ScimRails.configure do |config|
   # Model used for user records.
   config.scim_users_model = "User"
 
+  # Model used for group records
+  config.scim_groups_model = "Group"
+
   # Metod used for retriving user records from the
   # authenticatable model.
   config.scim_users_scope = :users
