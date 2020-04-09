@@ -24,7 +24,7 @@ module ScimRails
       end
     end
 
-    # TOD): Cut down on redundant code in this file
+    # TODO: Cut down on redundant code in this file
 
     def json_scim_group_response(object:, status: :ok, counts: nil)
       case params[:action]
