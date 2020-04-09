@@ -21,6 +21,9 @@ ScimRails.configure do |config|
   # authenticatable model.
   config.scim_users_scope = :users
 
+  # Model used for the members of a group
+  config.scim_group_member_scope = :users
+
   # Determine whether the create endpoint updates users that already exist
   # or throws an error (returning 409 Conflict in accordance with SCIM spec)
   config.scim_user_prevent_update_on_create = false

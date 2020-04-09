@@ -10,7 +10,11 @@ ScimRails.configure do |config|
   config.basic_auth_model_authenticatable_attribute = :api_token
   config.scim_users_scope = :users
   config.scim_groups_scope = :groups
+
+  config.scim_group_member_scope = :users
+
   config.scim_users_list_order = :id
+  config.scim_groups_list_order = :id
 
   config.signing_algorithm = "HS256"
   config.signing_secret = "2d6806dd11c2fece2e81b8ca76dcb0062f5b08e28e3264e8ba1c44bbd3578b70"
@@ -58,4 +62,16 @@ ScimRails.configure do |config|
     ],
     active: :unarchived?
   }
+
+  config.group_schema = {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Group"],
+    id: :id,
+    displayName: :display_name,
+    members: []
+  }
+
+  config.group_member_schema = {
+    value: :id
+  }
+
 end

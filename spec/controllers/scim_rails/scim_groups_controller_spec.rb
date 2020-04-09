@@ -28,6 +28,13 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before :each do
         http_login(company)
       end
+
+      let(:user_list) { create_list(:user, 5, first_name: "Ryan", last_name: "Cheong", company: company) }
+
+      it 'calls index method' do
+        create_list(:group, 3, display_name: "Church of Ryan", users: user_list, company: company)
+        get :index
+      end
     end
   end
 

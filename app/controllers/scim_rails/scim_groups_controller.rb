@@ -1,7 +1,18 @@
 module ScimRails
   class ScimGroupsController < ScimRails::ApplicationController
     def index
+      # TODO: Add param functionality for filtering
+      groups = @company
+               .public_send(ScimRails.config.scim_groups_scope)
+               .order(ScimRails.config.scim_groups_list_order)
 
+      counts = ScimCount.new(
+        start_index: params[:startIndex],
+        limit: params[:count],
+        total: groups.count
+      )
+
+      json_scim_group_response(object: groups, counts: counts)
     end
 
     def create

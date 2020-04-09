@@ -20,10 +20,12 @@ module ScimRails
       :mutable_user_attributes_schema,
       :queryable_user_attributes,
       :scim_users_list_order,
+      :scim_groups_list_order,
       :scim_users_model,
       :scim_groups_model,
       :scim_users_scope,
       :scim_groups_scope,
+      :scim_group_member_scope,
       :scim_user_prevent_update_on_create,
       :signing_secret,
       :signing_algorithm,
@@ -32,11 +34,13 @@ module ScimRails
       :user_reprovision_method,
       :user_schema,
       :group_schema,
+      :group_member_schema,
       :group_attributes
 
     def initialize
       @basic_auth_model = "Company"
       @scim_users_list_order = :id
+      @scim_groups_list_order = :id
       @scim_users_model = "User"
       @signing_algorithm = ALGO_NONE
       @user_schema = {}
