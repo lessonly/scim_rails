@@ -37,12 +37,6 @@ module ScimRails
     end
     
     # Shared stuff...
-    def permitted_user_params
-      ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
-        hash[attribute] = find_value_for(attribute)
-      end
-    end
-
     def find_value_for(attribute)
       params.dig(*path_for(attribute))
     end
@@ -72,11 +66,6 @@ module ScimRails
         end
         nil
       end
-    end
-
-    def update_status(user)
-      user.public_send(ScimRails.config.user_reprovision_method) if active?
-      user.public_send(ScimRails.config.user_deprovision_method) unless active?
     end
 
     def active?
