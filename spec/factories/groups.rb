@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :group do
-    company {}
+    company
     users { [] }
 
-    display_name { "MyString" }
+    display_name { Faker::Name.name }
   end
 end

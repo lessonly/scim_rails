@@ -47,28 +47,23 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         let(:total_group_count) { 10 }
 
         let(:returned_resource) { response_body["Resources"].first }
+        let!(:group_list) { create_list(:group, total_group_count, users: user_list, company: company) }
 
         it 'returns all results' do
-          create_list(:group, total_group_count, users: user_list, company: company)
-
           get :index
           expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:ListResponse"
           expect(response_body["totalResults"]).to eq(total_group_count)
         end
 
-        let(:group_name) { Faker::Games::Pokemon.location }
-
-        it 'returns the correct data for group' do
-          create(:group, display_name: group_name, users: user_list, company: company)
-
+        it 'returns the correct data for members' do
           get :index
-          expect(returned_resource["displayName"]).to eq(group_name)
           expect(returned_resource["members"].map{ |res| res["value"] }).to match_array(Array(1..user_list_length))
         end
 
         context 'with filter parameters' do
           let(:search_term) { Faker::Games::Pokemon.name }
           let(:not_search_term) { search_term[0, search_term.length - 1] }
+          let(:unfound_search_term) { search_term[0, search_term.length - 2] }
 
           let!(:group_with_search_term) { create(:group, display_name: search_term, company: company) }
           let!(:group_without_search_term) { create(:group, display_name: not_search_term, company: company) }
@@ -77,13 +72,11 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
             get :index, {
               filter: "displayName eq #{search_term}"
             }
-  
+            
             expect(response_body["totalResults"]).to eq(1)
             expect(response_body["Resources"].count).to eq(1)
             expect(returned_resource["displayName"]).to eq(search_term)
           end
-
-          let(:unfound_search_term) { search_term[0, search_term.length - 2] }
 
           it 'returns no results for unfound filter parameters' do
             get :index, {
