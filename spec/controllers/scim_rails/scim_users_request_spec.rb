@@ -11,7 +11,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
     post "/scim_rails/scim/v2/Users",
          {
            name: {
-             givenName: "New"
+             givenName: "New",
              familyName: "User",
            },
            emails: [

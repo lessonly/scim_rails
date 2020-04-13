@@ -19,6 +19,7 @@ module ScimRails
       :mutable_user_attributes,
       :mutable_user_attributes_schema,
       :queryable_user_attributes,
+      :queryable_group_attributes,
       :scim_users_list_order,
       :scim_groups_list_order,
       :scim_users_model,
@@ -59,6 +60,10 @@ module ScimRails
 
     def scim_users_model
       @scim_users_model.constantize
+    end
+
+    def scim_groups_model
+      @scim_groups_model.constantize
     end
   end
 end

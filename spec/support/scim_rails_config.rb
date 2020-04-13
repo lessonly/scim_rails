@@ -35,6 +35,10 @@ ScimRails.configure do |config|
     email: :email
   }
 
+  config.queryable_group_attributes = {
+    displayName: :display_name
+  }
+
   config.mutable_user_attributes_schema = {
     name: {
       givenName: :first_name,

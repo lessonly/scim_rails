@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :group do
     company {}
-    users {}
+    users { [] }
 
     display_name { "MyString" }
   end

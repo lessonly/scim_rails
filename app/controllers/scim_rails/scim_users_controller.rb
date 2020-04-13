@@ -7,7 +7,7 @@ module ScimRails
         users = @company
           .public_send(ScimRails.config.scim_users_scope)
           .where(
-            "#{ScimRails.config.scim_users_model.connection.quote_column_name(query.attribute)} #{query.operator} ?",
+            "#{ScimRails.config.scim_users_model.connection.quote_column_name(query.user_attribute)} #{query.operator} ?",
             query.parameter
           )
           .order(ScimRails.config.scim_users_list_order)
