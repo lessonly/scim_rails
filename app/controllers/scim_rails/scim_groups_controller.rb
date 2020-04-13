@@ -21,6 +21,7 @@ module ScimRails
       json_scim_group_response(object: groups, counts: counts)
     end
 
+    # TODO: complete method
     def create
       group = @company.public_send(ScimRails.config.scim_group_scope).create!(permitted_group_params)
 
@@ -32,18 +33,17 @@ module ScimRails
       json_scim_response(object: group)
     end
 
+    # TODO: complete method
     def put_update
 
     end
 
+    # TODO: complete method
     def patch_update
 
     end
 
     private
 
-    def permitted_group_params
-      params.permit()
-    end
   end
 end

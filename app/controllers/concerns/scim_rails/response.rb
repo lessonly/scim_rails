@@ -1,4 +1,5 @@
 module ScimRails
+  # TODO: Cut down on redundant code in this file
   module Response
     CONTENT_TYPE = "application/scim+json".freeze
 
@@ -23,8 +24,6 @@ module ScimRails
           content_type: CONTENT_TYPE
       end
     end
-
-    # TODO: Cut down on redundant code in this file
 
     def json_scim_group_response(object:, status: :ok, counts: nil)
       case params[:action]
