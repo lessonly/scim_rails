@@ -164,6 +164,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before :each do
         http_login(company)
       end
+
+      # TODO: add tests once method is implemented
     end
   end
 
@@ -189,6 +191,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before :each do
         http_login(company)
       end
+
+      # TODO: add tests once method is implemented
     end
   end
 
@@ -214,6 +218,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before :each do
         http_login(company)
       end
+
+      # TODO: add tests once method is implemented
     end
   end
 
@@ -239,6 +245,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before :each do
         http_login(company)
       end
+
+      # TODO: add tests once method is implemented
     end
   end
 
