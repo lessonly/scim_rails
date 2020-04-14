@@ -11,33 +11,33 @@ module ScimRails
     end
 
     def json_scim_response(object:, status: :ok, counts: nil)
+      response = nil
       case params[:action]
       when "index"
-        render \
-          json: list_response(object, counts),
-          status: status,
-          content_type: CONTENT_TYPE
+        response = list_response(object, counts)
       when "show", "create", "put_update", "patch_update"
-        render \
-          json: user_response(object),
-          status: status,
-          content_type: CONTENT_TYPE
+        response = user_response(object)
       end
+
+      render \
+        json: response,
+        status: status,
+        content_type: CONTENT_TYPE
     end
 
     def json_scim_group_response(object:, status: :ok, counts: nil)
+      response = nil
       case params[:action]
       when "index"
-        render \
-          json: list_group_response(object, counts),
-          status: status,
-          content_type: CONTENT_TYPE
+        response = list_group_response(object, counts)
       when "show", "create", "put_update", "patch_update"
-        render \
-          json: group_response(object),
-          status: status,
-          content_type: CONTENT_TYPE
+        response = group_response(object)
       end
+
+      render \
+        json: response,
+        status: status,
+        content_type: CONTENT_TYPE
     end
 
     private
