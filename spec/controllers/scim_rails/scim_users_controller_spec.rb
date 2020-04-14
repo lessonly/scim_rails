@@ -596,7 +596,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     context 'when authorized' do
       let(:user_id) { 1 }
       let(:invalid_id) { "invalid_id" }
-      let(:unauthorized_id) { 2 }
 
       let!(:user) { create(:user, id: user_id, company: company) }
 
@@ -610,20 +609,23 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(response.status).to eq(404)
       end
 
-      it "returns :not_found for correct id but unauthorized company" do
-        new_company = create(:company)
-        create(:user, company: new_company, id: unauthorized_id)
+      context "with unauthorized user" do
+        let(:unauthorized_id) { 2 }
 
-        delete :delete, { id: unauthorized_id }
-        
-        expect(response.status).to eq(404)
+        let!(:new_company) { create(:company) }
+        let!(:unauthorized_user) { create(:user, company: new_company, id: unauthorized_id) }
+
+        it "returns :not_found for correct id but unauthorized company" do
+          delete :delete, { id: unauthorized_id }
+          
+          expect(response.status).to eq(404)
+        end
       end
 
       it "successfully deletes for correct id provided" do
         delete :delete, { id: user_id }
 
         expect(response.status).to eq(204)
-        expect(company.users.count).to eq(0)
         expect(User.count).to eq(0)
       end
     end
