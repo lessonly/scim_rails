@@ -22,10 +22,7 @@ module ScimRails
           status: status,
           content_type: CONTENT_TYPE
       when "delete"
-        render \
-          nothing: true,
-          status: status,
-          content_type: CONTENT_TYPE
+        head status
       end
     end
 
