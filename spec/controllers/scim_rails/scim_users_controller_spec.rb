@@ -572,6 +572,63 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     end
   end
 
+
+  describe "delete" do
+    let(:company) { create(:company) }
+  
+    context "when unauthorized" do
+      before { delete :delete, { id: 1 } }
+
+      it "returns scim+json content type" do
+        expect(response.content_type).to eq "application/scim+json"
+      end
+
+      it "fails with no credentials" do
+        expect(response.status).to eq 401
+      end
+
+      it "fails with invalid credentials" do
+        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        expect(response.status).to eq 401
+      end
+    end
+
+    context 'when authorized' do
+      let(:user_id) { 1 }
+      let(:invalid_id) { "invalid_id" }
+      let(:unauthorized_id) { 2 }
+
+      let!(:user) { create(:user, id: user_id, company: company) }
+
+      before :each do
+        http_login(company)
+      end
+
+      it "returns :not_found for invalid id" do
+        delete :delete, { id: invalid_id }
+
+        expect(response.status).to eq(404)
+      end
+
+      it "returns :not_found for correct id but unauthorized company" do
+        new_company = create(:company)
+        create(:user, company: new_company, id: unauthorized_id)
+
+        delete :delete, { id: unauthorized_id }
+        
+        expect(response.status).to eq(404)
+      end
+
+      it "successfully deletes for correct id provided" do
+        delete :delete, { id: user_id }
+
+        expect(response.status).to eq(204)
+        expect(company.users.count).to eq(0)
+        expect(User.count).to eq(0)
+      end
+    end
+  end
+
   def patch_params(id:, active: false)
     {
       id: id,

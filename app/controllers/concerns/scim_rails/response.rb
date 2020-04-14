@@ -21,6 +21,11 @@ module ScimRails
           json: user_response(object),
           status: status,
           content_type: CONTENT_TYPE
+      when "delete"
+        render \
+          nothing: true,
+          status: status,
+          content_type: CONTENT_TYPE
       end
     end
 

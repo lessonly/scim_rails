@@ -62,6 +62,12 @@ module ScimRails
       json_scim_response(object: user)
     end
 
+    def delete
+      @company.public_send(ScimRails.config.scim_users_scope).delete(params[:id])
+      ScimRails.config.scim_users_model.delete(params[:id])
+      json_scim_response(object: nil, status: :no_content)
+    end
+
     private
 
     def permitted_user_params
