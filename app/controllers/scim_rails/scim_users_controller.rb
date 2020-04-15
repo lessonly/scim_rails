@@ -63,8 +63,8 @@ module ScimRails
     end
 
     def delete
-      @company.public_send(ScimRails.config.scim_users_scope).delete(params[:id])
-      ScimRails.config.scim_users_model.delete(params[:id])
+      user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
+      user.delete
       json_scim_response(object: nil, status: :no_content)
     end
 
