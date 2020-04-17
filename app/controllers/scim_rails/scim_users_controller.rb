@@ -70,7 +70,7 @@ module ScimRails
         active_param = operation.dig("value", "active")
         status = patch_status(active_param)
         
-        next if active.nil?
+        next if status.nil?
         user.public_send(ScimRails.config.user_reprovision_method) if status
         user.public_send(ScimRails.config.user_deprovision_method) unless status
       end
