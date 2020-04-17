@@ -77,8 +77,6 @@ module ScimRails
 
     private
 
-    def permitted_params(params)
-
     def permitted_patch_params(patch_params)
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = patch_find_value_for(patch_params, attribute)
@@ -127,16 +125,16 @@ module ScimRails
       end
     end
 
-    def put_update_status(user)
-      user.public_send(ScimRails.config.user_reprovision_method) if put_active?
-      user.public_send(ScimRails.config.user_deprovision_method) unless put_active?
-    end
+    # def put_update_status(user)
+    #   user.public_send(ScimRails.config.user_reprovision_method) if put_active?
+    #   user.public_send(ScimRails.config.user_deprovision_method) unless put_active?
+    # end
 
-    def patch_update_status(user)
-      return if patch_active.nil?
-      user.public_send(ScimRails.config.user_reprovision_method) if patch_active?
-      user.public_send(ScimRails.config.user_deprovision_method) unless patch_active?
-    end
+    # def patch_update_status(user)
+    #   return if patch_active.nil?
+    #   user.public_send(ScimRails.config.user_reprovision_method) if patch_active?
+    #   user.public_send(ScimRails.config.user_deprovision_method) unless patch_active?
+    # end
 
     def update_status(user)
       user.public_send(ScimRails.config.user_reprovision_method) if active?
