@@ -28,10 +28,13 @@ module ScimRails
 
     def create
       if ScimRails.config.scim_user_prevent_update_on_create
-        user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_user_params)
+        user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_params(params))
       else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
+
         find_by_username = Hash.new
+        permitted_user_params = permitted_params(params)
+
         find_by_username[username_key] = permitted_user_params[username_key]
         user = @company
           .public_send(ScimRails.config.scim_users_scope)
@@ -50,7 +53,7 @@ module ScimRails
     def put_update
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       update_status(user) unless put_active_param.nil?
-      user.update!(permitted_user_params)
+      user.update!(permitted_params(params))
       json_scim_response(object: user)
     end
 
@@ -60,16 +63,16 @@ module ScimRails
       params["Operations"].each do |operation|
         raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"] != "replace"
 
-        changed_attributes = permitted_patch_params(operation["value"])
+        changed_attributes = permitted_params(operation["value"])
 
         user.update!(changed_attributes.compact)
 
         active_param = operation.dig("value", "active")
-        active = patch_status(active_param)
+        status = patch_status(active_param)
         
         next if active.nil?
-        user.public_send(ScimRails.config.user_reprovision_method) if active
-        user.public_send(ScimRails.config.user_deprovision_method) unless active
+        user.public_send(ScimRails.config.user_reprovision_method) if status
+        user.public_send(ScimRails.config.user_deprovision_method) unless status
       end
 
       json_scim_response(object: user)
@@ -77,24 +80,10 @@ module ScimRails
 
     private
 
-    def permitted_patch_params(patch_params)
+    def permitted_params(parameters)
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
-        hash[attribute] = patch_find_value_for(patch_params, attribute)
+        hash[attribute] = parameters.dig(*path_for(attribute))
       end
-    end
-
-    def permitted_user_params
-      ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
-        hash[attribute] = find_value_for(attribute)
-      end
-    end
-
-    def patch_find_value_for(patch_params, attribute)
-      patch_params.dig(*path_for(attribute))
-    end
-
-    def find_value_for(attribute)
-      params.dig(*path_for(attribute))
     end
 
     # `path_for` is a recursive method used to find the "path" for
@@ -125,17 +114,6 @@ module ScimRails
       end
     end
 
-    # def put_update_status(user)
-    #   user.public_send(ScimRails.config.user_reprovision_method) if put_active?
-    #   user.public_send(ScimRails.config.user_deprovision_method) unless put_active?
-    # end
-
-    # def patch_update_status(user)
-    #   return if patch_active.nil?
-    #   user.public_send(ScimRails.config.user_reprovision_method) if patch_active?
-    #   user.public_send(ScimRails.config.user_deprovision_method) unless patch_active?
-    # end
-
     def update_status(user)
       user.public_send(ScimRails.config.user_reprovision_method) if active?
       user.public_send(ScimRails.config.user_deprovision_method) unless active?
@@ -154,7 +132,6 @@ module ScimRails
 
     def active?
       active = put_active_param
-      active = patch_active_param if active.nil?
 
       case active
       when true, "true", 1
@@ -168,12 +145,6 @@ module ScimRails
 
     def put_active_param
       params[:active]
-    end
-
-    def patch_active_param
-      active = params.dig("Operations", 0, "value", "active")
-      raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if active.nil?
-      active
     end
   end
 end

@@ -568,7 +568,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(user.archived?).to eq false
       end
 
-      context 'when changing non status attributes' do
+      context 'when changing non-status attributes' do
         let(:new_given_name) { "Joe" }
         let(:new_family_name) { "Shen" }
 
