@@ -569,13 +569,13 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       context 'when changing non-status attributes' do
-        let(:new_given_name) { "Joe" }
-        let(:new_family_name) { "Shen" }
+        let(:new_given_name) { Faker::Name.first_name }
+        let(:new_family_name) { Faker::Name.last_name }
 
-        let(:new_email) { "rcheong@example.com" }
+        let(:new_email) { Faker::Internet.email }
 
-        let(:final_given_name) { "Ryan" }
-        let(:final_family_name) { "Cheong" }
+        let(:final_given_name) { Faker::Name.first_name }
+        let(:final_family_name) { Faker::Name.last_name }
 
         it 'changes only name' do
           patch :patch_update, {

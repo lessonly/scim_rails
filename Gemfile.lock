@@ -56,6 +56,8 @@ GEM
     factory_bot_rails (5.1.1)
       factory_bot (~> 5.1.0)
       railties (>= 4.2.0)
+    faker (2.2.1)
+      i18n (>= 0.8)
     globalid (0.4.2)
       activesupport (>= 4.2.0)
     i18n (0.9.5)
@@ -145,6 +147,7 @@ DEPENDENCIES
   bundler
   byebug
   factory_bot_rails
+  faker
   pry
   pry-rescue
   rake (~> 10.0)

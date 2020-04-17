@@ -27,6 +27,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "rake", "~> 10.0"
   s.add_development_dependency "rspec-rails", "~> 3.0"
   s.add_development_dependency "pry-rescue"
+  s.add_development_dependency "faker"
   s.add_development_dependency "byebug"
   s.add_development_dependency "awesome_print"
   s.add_development_dependency "sqlite3" #, "~> 1.3", "< 1.5"
