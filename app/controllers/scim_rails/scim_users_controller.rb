@@ -54,20 +54,45 @@ module ScimRails
       json_scim_response(object: user)
     end
 
-    # TODO: PATCH will only deprovision or reprovision users.
-    # This will work just fine for Okta but is not SCIM compliant.
     def patch_update
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
-      update_status(user)
+
+      params["Operations"].each do |operation|
+        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"] != "replace"
+
+        changed_attributes = permitted_patch_params(operation["value"])
+
+        user.update!(changed_attributes.compact)
+
+        active_param = operation.dig("value", "active")
+        active = patch_status(active_param)
+        
+        next if active.nil?
+        user.public_send(ScimRails.config.user_reprovision_method) if active
+        user.public_send(ScimRails.config.user_deprovision_method) unless active
+      end
+
       json_scim_response(object: user)
     end
 
     private
 
+    def permitted_params(params)
+
+    def permitted_patch_params(patch_params)
+      ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
+        hash[attribute] = patch_find_value_for(patch_params, attribute)
+      end
+    end
+
     def permitted_user_params
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = find_value_for(attribute)
       end
+    end
+
+    def patch_find_value_for(patch_params, attribute)
+      patch_params.dig(*path_for(attribute))
     end
 
     def find_value_for(attribute)
@@ -102,9 +127,31 @@ module ScimRails
       end
     end
 
+    def put_update_status(user)
+      user.public_send(ScimRails.config.user_reprovision_method) if put_active?
+      user.public_send(ScimRails.config.user_deprovision_method) unless put_active?
+    end
+
+    def patch_update_status(user)
+      return if patch_active.nil?
+      user.public_send(ScimRails.config.user_reprovision_method) if patch_active?
+      user.public_send(ScimRails.config.user_deprovision_method) unless patch_active?
+    end
+
     def update_status(user)
       user.public_send(ScimRails.config.user_reprovision_method) if active?
       user.public_send(ScimRails.config.user_deprovision_method) unless active?
+    end
+
+    def patch_status(active_param)
+      case active_param
+      when true, "true", 1
+        true
+      when false, "false", 0
+        false
+      else
+        nil
+      end
     end
 
     def active?

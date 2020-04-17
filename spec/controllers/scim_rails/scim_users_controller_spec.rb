@@ -492,6 +492,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
     context "when authorized" do
       let!(:user) { create(:user, id: 1, company: company) }
+      let(:company_user) { company.users.first }
 
       before :each do
         http_login(company)
@@ -524,6 +525,23 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(response.status).to eq 404
       end
 
+      it "returns 422 error for an op that isn't 'replace'" do
+        patch :patch_update, {
+          id: 1,
+          Operations: [
+            {
+              op: "remove"
+            }
+          ]
+        }
+
+        expect(response.status).to eq(422)
+
+        response_body = JSON.parse(response.body)
+        expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
+        expect(response_body["detail"]).to eq("Invalid PATCH request. This PATCH endpoint only 'replace' operations.")
+      end
+
       it "successfully archives user" do
         expect(company.users.count).to eq 1
         user = company.users.first
@@ -550,24 +568,86 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(user.archived?).to eq false
       end
 
-      it "throws an error for non status updates" do
-        patch :patch_update, {
-          id: 1,
-          Operations: [
-            {
-              op: "replace",
-              value: {
-                name: {
-                  givenName: "Francis"
+      context 'when changing non status attributes' do
+        let(:new_given_name) { "Joe" }
+        let(:new_family_name) { "Shen" }
+
+        let(:new_email) { "rcheong@example.com" }
+
+        let(:final_given_name) { "Ryan" }
+        let(:final_family_name) { "Cheong" }
+
+        it 'changes only name' do
+          patch :patch_update, {
+            id: 1,
+            Operations: [
+              {
+                op: "replace",
+                value: {
+                  name: {
+                    givenName: new_given_name,
+                    familyName: new_family_name
+                  }
                 }
               }
-            }
-          ]
-        }
+            ]
+          }
 
-        expect(response.status).to eq 422
-        response_body = JSON.parse(response.body)
-        expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
+          expect(response.status).to eq(200)
+          expect(company_user.first_name).to eq(new_given_name)
+          expect(company_user.last_name).to eq(new_family_name)
+        end
+
+        it 'changes email' do
+           patch :patch_update, {
+              id: 1,
+              Operations: [
+                {
+                  op: "replace",
+                  value: {
+                    emails: [
+                      {
+                        value: new_email
+                      }
+                    ]
+                  }
+                }
+              ]
+           }
+
+           expect(response.status).to eq(200)
+           expect(company_user.email).to eq(new_email)
+        end
+
+        it 'works with more than one Operation' do
+          patch :patch_update, {
+            id: 1,
+            Operations: [
+              {
+                op: "replace",
+                value: {
+                  name: {
+                    givenName: new_given_name,
+                    familyName: new_family_name
+                  }
+                }
+              },
+              {
+                op: "replace",
+                value: {
+                  name: {
+                    givenName: final_given_name,
+                    familyName: final_family_name
+                  }
+                }
+              }
+            ]
+          }
+
+          expect(response.status).to eq(200)
+          expect(company_user.first_name).to eq(final_given_name)
+          expect(company_user.last_name).to eq(final_family_name)
+        end
       end
     end
   end
