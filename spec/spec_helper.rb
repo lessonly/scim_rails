@@ -5,6 +5,7 @@ require 'rspec/rails'
 require 'factory_bot_rails'
 require 'byebug'
 require 'awesome_print'
+require 'faker'
 
 Rails.backtrace_cleaner.remove_silencers!
 
