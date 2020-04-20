@@ -22,8 +22,10 @@ ActiveRecord::Schema.define(version: 20200408164220) do
   end
 
   create_table "groups", force: :cascade do |t|
-    t.string   "display_name"
+    t.string   "display_name", null: false
+    t.string   "email",        null: false
     t.integer  "company_id"
+    t.datetime "archived_at"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
   end

@@ -22,9 +22,17 @@ ScimRails.configure do |config|
   config.user_deprovision_method = :archive!
   config.user_reprovision_method = :unarchive!
 
+  config.group_deprovision_method = :archive!
+  config.group_reprovision_method = :unarchive!
+
   config.mutable_user_attributes = [
     :first_name,
     :last_name,
+    :email
+  ]
+
+  config.mutable_group_attributes = [
+    :display_name,
     :email
   ]
 
@@ -36,7 +44,9 @@ ScimRails.configure do |config|
   }
 
   config.queryable_group_attributes = {
-    displayName: :display_name
+    userName: :display_name,
+    displayName: :display_name,
+    email: :email
   }
 
   config.mutable_user_attributes_schema = {
@@ -49,6 +59,11 @@ ScimRails.configure do |config|
         value: :email
       }
     ]
+  }
+
+  config.mutable_group_attributes_schema = {
+    displayName: :display_name,
+    email: :email
   }
 
   config.user_schema = {
@@ -70,8 +85,11 @@ ScimRails.configure do |config|
   config.group_schema = {
     schemas: ["urn:ietf:params:scim:schemas:core:2.0:Group"],
     id: :id,
+    userName: :display_name,
     displayName: :display_name,
-    members: []
+    email: :email,
+    members: [],
+    active: :unarchived?
   }
 
   config.group_member_schema = {

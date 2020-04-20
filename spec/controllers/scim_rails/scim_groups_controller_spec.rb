@@ -185,7 +185,14 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         http_login(company)
       end
 
-      # TODO: add tests once method is implemented
+      it "returns scim+json content type" do
+        post :create, {
+          displayName: "Ferrothorn",
+          email: "ferrothorn@tpc.com"
+        }
+
+        expect(response.content_type).to eq "application/scim+json"
+      end
     end
   end
 

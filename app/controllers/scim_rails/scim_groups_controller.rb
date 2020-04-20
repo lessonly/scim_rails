@@ -23,14 +23,27 @@ module ScimRails
 
     # TODO: complete method
     def create
-      group = @company.public_send(ScimRails.config.scim_group_scope).create!(permitted_group_params)
+      group_attributes = permitted_group_params(params)
 
-      json_scim_response(object: group, status: :created)
+      if ScimRails.config.scim_group_prevent_update_on_create
+        group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes)
+      else
+        username_key = ScimRails.config.queryable_group_attributes[:userName]
+        find_by_username = Hash.new
+        find_by_username[username_key] = group_attributes[username_key]
+        group = @company
+          .public_send(ScimRails.config.scim_groups_scope)
+          .find_or_create_by(find_by_username)
+        group.update!(group_attributes)
+      end
+
+      update_group_status(group) unless put_active_param.nil?
+      json_scim_group_response(object: group, status: :created)
     end
 
     def show
-      group = @company.public_send(ScimRails.config.scim_group_scope).find(params[:id])
-      json_scim_response(object: group)
+      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+      json_scim_group_response(object: group)
     end
 
     # TODO: complete method
@@ -44,6 +57,37 @@ module ScimRails
     end
 
     private
+
+    def permitted_group_params(parameters)
+      ScimRails.config.mutable_group_attributes.each.with_object({}) do |attribute, hash|
+        hash[attribute] = parameters.dig(*group_path_for(attribute))
+      end
+    end
+
+    def update_group_status(group)
+      group.public_send(ScimRails.config.group_reprovision_method) if active?
+      group.public_send(ScimRails.config.group_deprovision_method) unless active?
+    end
+
+    def group_path_for(attribute, object = ScimRails.config.mutable_group_attributes_schema, path = [])
+      at_path = path.empty? ? object : object.dig(*path)
+      return path if at_path == attribute
+
+      case at_path
+      when Hash
+        at_path.each do |key, value|
+          found_path = path_for(attribute, object, [*path, key])
+          return found_path if found_path
+        end
+        nil
+      when Array
+        at_path.each_with_index do |value, index|
+          found_path = path_for(attribute, object, [*path, index])
+          return found_path if found_path
+        end
+        nil
+      end
+    end
 
   end
 end

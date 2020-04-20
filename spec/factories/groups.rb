@@ -4,5 +4,6 @@ FactoryBot.define do
     users { [] }
 
     display_name { Faker::Name.name }
+    email { Faker::Internet.email }
   end
 end
