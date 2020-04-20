@@ -23,13 +23,13 @@ module ScimRails
 
     # TODO: complete method
     def create
-      group = @company.public_send(ScimRails.config.scim_group_scope).create!(permitted_group_params)
+      group = @company.public_send(ScimRails.config.scim_groups_scope).create!(permitted_group_params)
 
       json_scim_response(object: group, status: :created)
     end
 
     def show
-      group = @company.public_send(ScimRails.config.scim_group_scope).find(params[:id])
+      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
       json_scim_response(object: group)
     end
 
@@ -41,6 +41,12 @@ module ScimRails
     # TODO: complete method
     def patch_update
 
+    end
+
+    def delete
+      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+      group.delete
+      json_scim_group_response(object: nil, status: :no_content)
     end
 
     private

@@ -10,4 +10,5 @@ ScimRails::Engine.routes.draw do
   get    'scim/v2/Groups/:id',  action: :show,          controller: 'scim_groups'
   put    'scim/v2/Groups/:id',  action: :put_update,    controller: 'scim_groups'
   patch  'scim/v2/Groups/:id',  action: :patch_update,  controller: 'scim_groups'
+  delete 'scim/v2/Groups/:id',  action: :delete,        controller: 'scim_groups'
 end
