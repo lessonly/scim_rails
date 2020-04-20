@@ -158,7 +158,47 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         http_login(company)
       end
 
-      # TODO: add tests once method is implemented
+      let(:user_list_length) { 3 }
+      let(:group_name) { Faker::Games::Pokemon.name }
+      let(:invalid_id) { "invalid_id" }
+
+      let!(:user_list) { create_list(:user, user_list_length) } 
+      let!(:group) { create(:group, display_name: group_name, users: user_list, company: company) }
+
+      let(:returned_resource) { JSON.parse(response.body) }
+
+      it "returns scim+json content type" do
+        get :show, { id: 1 }
+
+        expect(response.content_type).to eq "application/scim+json"
+      end
+
+      it "returns :not_found for invalid id" do
+        get :show, { id: invalid_id }
+        
+        expect(response.status).to eq(404)
+      end
+
+      context "with unauthorized group" do
+        let(:unauthorized_id) { 2 }
+
+        let!(:new_company) { create(:company) }
+        let!(:unauthorized_group) { create(:group, company: new_company, id: unauthorized_id) }
+
+        it "returns :not_found for correct id but unauthorized company" do
+          get :show, { id: unauthorized_id }
+
+          expect(response.status).to eq(404)
+        end
+      end
+
+      it "is successful with correct id provided" do
+        get :show, { id: 1 }
+
+        expect(response.status).to eq(200)
+        expect(returned_resource["displayName"]).to eq(group_name)
+        expect(returned_resource["members"].map{ |res| res["value"] }).to match_array(Array(1..user_list_length))
+      end
     end
   end
 

@@ -30,7 +30,7 @@ module ScimRails
 
     def show
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
-      json_scim_response(object: group)
+      json_scim_group_response(object: group)
     end
 
     # TODO: complete method
