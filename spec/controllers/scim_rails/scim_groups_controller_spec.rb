@@ -185,13 +185,102 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         http_login(company)
       end
 
-      it "returns scim+json content type" do
-        post :create, {
-          displayName: "Ferrothorn",
-          email: "ferrothorn@tpc.com"
-        }
+      let(:group_name) { Faker::Games::Pokemon.name }
+      let(:group_email) { Faker::Internet.email }
 
-        expect(response.content_type).to eq "application/scim+json"
+      context "with valid credentials" do
+        let(:modified_group_email) { Faker::Internet.email }
+
+        let(:created_group) { company.groups.first }
+
+        it "returns scim+json credentials" do
+          post :create, {
+            displayName: Faker::Games::Pokemon.name,
+            email: Faker::Internet.email
+          }
+  
+          expect(response.content_type).to eq "application/scim+json"
+        end
+
+        it "is successful" do
+          expect(company.groups.count).to eq(0)
+          expect(Group.count).to eq(0)
+
+          post :create, {
+            displayName: group_name,
+            email: group_email
+          }
+
+          expect(response.status).to eq(201)
+
+          expect(company.groups.count).to eq(1)
+          expect(Group.count).to eq(1)
+
+          expect(created_group.display_name).to eq(group_name)
+          expect(created_group.email).to eq(group_email)
+        end
+
+        it "ignores unconfigured parameters" do
+          post :create, {
+            displayName: Faker::Games::Pokemon.name,
+            email: Faker::Internet.email,
+            unconfiguredParam: "unconfigured"
+          }
+
+          expect(response.status).to eq(201)
+          expect(company.groups.count).to eq(1)
+        end
+
+        it 'updates group if existing display name used' do
+          create(:group, display_name: group_name, company: company)
+
+          post :create, {
+            displayName: group_name,
+            email: modified_group_email
+          }
+
+          expect(response.status).to eq(201)
+
+          expect(company.groups.count).to eq(1)
+          expect(created_group.email).to eq(modified_group_email)
+        end
+
+        it "creates and archives user" do
+          post :create, {
+            displayName: group_name,
+            email: group_email,
+            active: "false"
+          }
+
+          expect(response.status).to eq(201)
+          expect(company.groups.count).to eq(1)
+
+          expect(created_group.archived?).to eq(true)
+        end
+      end
+
+      context "with invalid credentials" do
+        it "returns 422 if required params missing" do
+          post :create, {
+            displayName: Faker::Name.name
+          }
+
+          expect(response.status).to eq(422)
+          expect(company.groups.count).to eq(0)
+        end
+
+        it "returns 409 if display name taken and updating not allowed" do
+          allow(ScimRails.config).to receive(:scim_group_prevent_update_on_create).and_return(true)
+          create(:group, display_name: group_name, company: company)
+
+          post :create, {
+            displayName: group_name,
+            email: group_email
+          }
+
+          expect(response.status).to eq(409)
+          expect(company.groups.count).to eq(1)
+        end
       end
     end
   end

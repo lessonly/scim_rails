@@ -10,9 +10,9 @@ class Group < ApplicationRecord
     presence: true
 
   validates \
-    :email,
+    :display_name,
     uniqueness: {
-      case_insensitive: true
+      case_insensitive: false
     }
 
   def active?
