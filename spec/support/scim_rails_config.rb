@@ -33,7 +33,8 @@ ScimRails.configure do |config|
 
   config.mutable_group_attributes = [
     :display_name,
-    :email
+    :email,
+    :members
   ]
 
   config.queryable_user_attributes = {
@@ -63,7 +64,8 @@ ScimRails.configure do |config|
 
   config.mutable_group_attributes_schema = {
     displayName: :display_name,
-    email: :email
+    email: :email,
+    members: :members
   }
 
   config.user_schema = {

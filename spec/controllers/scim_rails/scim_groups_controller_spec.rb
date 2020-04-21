@@ -196,7 +196,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         it "returns scim+json credentials" do
           post :create, {
             displayName: Faker::Games::Pokemon.name,
-            email: Faker::Internet.email
+            email: Faker::Internet.email,
+            members: []
           }
   
           expect(response.content_type).to eq "application/scim+json"
@@ -208,7 +209,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
 
           post :create, {
             displayName: group_name,
-            email: group_email
+            email: group_email,
+            members: []
           }
 
           expect(response.status).to eq(201)
@@ -224,6 +226,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
           post :create, {
             displayName: Faker::Games::Pokemon.name,
             email: Faker::Internet.email,
+            members: [],
             unconfiguredParam: "unconfigured"
           }
 
@@ -236,7 +239,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
 
           post :create, {
             displayName: group_name,
-            email: modified_group_email
+            email: modified_group_email,
+            members: []
           }
 
           expect(response.status).to eq(201)
@@ -249,6 +253,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
           post :create, {
             displayName: group_name,
             email: group_email,
+            members: [],
             active: "false"
           }
 

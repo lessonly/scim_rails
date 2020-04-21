@@ -26,7 +26,7 @@ module ScimRails
       group_attributes = permitted_group_params(params)
 
       if ScimRails.config.scim_group_prevent_update_on_create
-        group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes)
+        group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes.except(:members))
       else
         username_key = ScimRails.config.queryable_group_attributes[:userName]
         find_by_username = Hash.new
@@ -34,7 +34,7 @@ module ScimRails
         group = @company
           .public_send(ScimRails.config.scim_groups_scope)
           .find_or_create_by(find_by_username)
-        group.update!(group_attributes)
+        group.update!(group_attributes.except(:members))
       end
 
       update_group_status(group) unless put_active_param.nil?
