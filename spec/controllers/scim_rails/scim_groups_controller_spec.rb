@@ -313,13 +313,160 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         http_login(company)
       end
 
-      # TODO: add tests once method is implemented
+      let!(:user_list) { create_list(:user, 3, company: company) }
+      let!(:target_group) { create(:group, users: user_list, company: company) }
+
+      context "with valid credentials" do
+        let(:modified_name) { Faker::Games::Pokemon.name }
+        let(:modified_email) { Faker::Internet.email }
+
+        let!(:replacement_users) { create_list(:user, 3, company: company) }
+        let(:replacement_ids) { replacement_users.map{ |user| user[:id] }}
+
+        let(:updated_group) { company.groups.first }
+        let(:updated_user_list) { updated_group.users }
+
+        it "returns scim+json content type" do
+          put :put_update, put_params(id: target_group.id)
+
+          expect(response.content_type).to eq("application/scim+json")
+        end
+
+        it "successfully updates a group" do
+          put :put_update, put_params(id: target_group.id, displayName: modified_name, email: modified_email)
+
+          expect(response.status).to eq(200)
+
+          expect(updated_group.display_name).to eq(modified_name)
+          expect(updated_group.email).to eq(modified_email)
+        end
+
+        it "reprovisions a group" do
+          put :put_update, put_params(id: target_group, active: true)
+
+          expect(response.status).to eq(200)
+
+          expect(updated_group.active?).to eq(true)
+        end
+
+        it "deprovisions a group" do
+          put :put_update, put_params(id: target_group, active: false)
+
+          expect(response.status).to eq(200)
+
+          expect(updated_group.active?).to eq(false)
+        end
+
+        it "replaces group's user list" do
+          put :put_update, put_params(
+            id: target_group.id, 
+            members: [ 
+              { 
+                value: replacement_ids[0]
+              },
+              {
+                value: replacement_ids[1]
+              },
+              {
+                value: replacement_ids[2]
+              }
+            ]
+          )
+
+          expect(response.status).to eq(200)
+
+          expect(updated_user_list.map{ |user| user[:id] }).to match_array(replacement_ids)
+        end
+
+        it "clears a group's user list" do
+          put :put_update, put_params(id: target_group.id)
+
+          expect(response.status).to eq(200)
+
+          expect(updated_user_list).to be_empty
+        end
+
+      end
+
+      context "without valid credentials" do
+        let(:invalid_group_id) { "invalid_group_id" }
+        let(:invalid_user_id) { "invalid_user_id" }
+
+        it "returns :not_found for id without a group" do
+          put :put_update, put_params(id: invalid_group_id)
+
+          expect(response.status).to eq(404)
+        end
+
+        it "returns 422 if attribute params missing" do
+          put :put_update, {
+            id: target_group.id,
+            displayName: "Joe",
+            members: []
+          }
+
+          expect(response.status).to eq(422)
+        end
+
+        it "returns 400 if active param invalid" do
+          put :put_update, put_params(id: target_group.id, active: "hotdog")
+
+          expect(response.status).to eq(400)
+        end
+
+        context "with invalid 'members' params" do
+          let(:response_body) { JSON.parse(response.body) }
+
+          it "returns :bad_request if missing" do
+            put :put_update, {
+              id: target_group.id
+            }
+
+            expect(response.status).to eq(400)
+            expect(response_body["detail"]).to eq("Invalid PUT request. The 'members' attribute of the request must exist and be an array of hashes.")
+          end
+
+          it "returns :bad_request if not an array" do
+            put :put_update, {
+              id: target_group.id,
+              members: Faker::Games::Pokemon.name
+            }
+
+            expect(response.status).to eq(400)
+            expect(response_body["detail"]).to eq("Invalid PUT request. The 'members' attribute of the request must exist and be an array of hashes.")
+          end
+
+          it "returns :bad_request if not an array of hashes" do
+            put :put_update, {
+              id: target_group.id,
+              members: [ Faker::Games::Pokemon.name, Faker::Games::Pokemon.location, Faker::Games::Pokemon.move ]
+            }
+
+            expect(response.status).to eq(400)
+            expect(response_body["detail"]).to eq("Invalid PUT request. The 'members' attribute of the request must exist and be an array of hashes.")
+          end
+
+          it "returns :not_found for id without a user" do
+            put :put_update, put_params(
+              id: target_group.id,
+              members: [
+                {
+                  value: invalid_user_id
+                }
+              ]
+            )
+  
+            expect(response.status).to eq(404)
+          end
+        end
+
+      end
     end
   end
 
   describe "patch update" do
     context "when unauthorized" do
-      before { patch :patch_update, patch_params(id: 1) }
+      before { patch :patch_update, { id: 1 } }
 
       it "returns scim+json content type" do
         expect(response.content_type).to eq "application/scim+json"
@@ -344,17 +491,13 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
     end
   end
 
-  def patch_params(id:, active: false)
+  def put_params(id:, displayName: Faker::Name.name, email: Faker::Internet.email, members: [], active: true)
     {
       id: id,
-      Operations: [
-        {
-          op: "replace",
-          value: {
-            active: active
-          }
-        }
-      ]
+      displayName: displayName,
+      email: email,
+      members: members,
+      active: active
     }
   end
 end

@@ -21,7 +21,6 @@ module ScimRails
       json_scim_group_response(object: groups, counts: counts)
     end
 
-    # TODO: complete method
     def create
       group_attributes = permitted_group_params(params)
 
@@ -46,9 +45,25 @@ module ScimRails
       json_scim_group_response(object: group)
     end
 
-    # TODO: complete method
     def put_update
+      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
 
+      put_error_check
+
+      group_attributes = permitted_group_params(params)
+      group.update!(group_attributes.except(:members))
+
+      update_group_status(group) unless put_active_param.nil?
+
+      member_ids = params["members"]&.map{ |member| member["value"] }
+
+      group.users.clear
+      member_ids.each do |id|
+        user = @company.public_send(ScimRails.config.scim_users_scope).find(id)
+        group.users << user
+      end
+
+      json_scim_group_response(object: group)
     end
 
     # TODO: complete method
@@ -57,6 +72,37 @@ module ScimRails
     end
 
     private
+
+    def put_error_check
+      members = params["members"]
+
+      raise ScimRails::ExceptionHandler::InvalidPutMembers unless (members.is_a?(Array) && array_of_hashes?(members))
+
+      member_ids = members.map{ |member| member["value"] }
+
+      member_ids.each do |id|
+        @company.public_send(ScimRails.config.scim_users_scope).find(id)
+      end
+        
+      return if put_active_param.nil?
+
+      case put_active_param
+      when true, "true", 1
+        
+      when false, "false", 0
+        
+      else
+        raise ScimRails::ExceptionHandler::InvalidActiveParam
+      end
+    end
+
+    def array_of_hashes?(array)
+      array.each do |element|
+        return false unless element.is_a?(Hash)
+      end
+
+      return true
+    end
 
     def permitted_group_params(parameters)
       ScimRails.config.mutable_group_attributes.each.with_object({}) do |attribute, hash|

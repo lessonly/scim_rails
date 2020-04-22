@@ -11,6 +11,12 @@ module ScimRails
     class UnsupportedPatchRequest < StandardError
     end
 
+    class InvalidPutMembers < StandardError
+    end
+
+    class InvalidActiveParam < StandardError
+    end
+
     included do
       # StandardError must be ordered _first_ or it will catch all exceptions
       #
@@ -59,6 +65,28 @@ module ScimRails
             status: "422"
           },
           :unprocessable_entity
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::InvalidPutMembers do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid PUT request. The 'members' attribute of the request must exist and be an array of hashes.",
+            status: "400"
+          },
+          :bad_request
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::InvalidActiveParam do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid request. The active param can only be 'true' or 'false'",
+            status: "400"
+          },
+          :bad_request
         )
       end
 
