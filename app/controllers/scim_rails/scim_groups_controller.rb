@@ -181,8 +181,7 @@ module ScimRails
           .where("#{query.query_elements[0]} #{query.operator} ?", query.parameter)
 
       members.each do |member|
-        group.users.find(member.id)
-        group.users.delete(member)
+        group.users.delete(member.id)
       end
     end
 
