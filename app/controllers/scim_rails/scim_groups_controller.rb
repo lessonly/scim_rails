@@ -28,7 +28,7 @@ module ScimRails
         group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes.except(:members))
       else
         username_key = ScimRails.config.queryable_group_attributes[:userName]
-        find_by_username = Hash.new
+        find_by_username = {}
         find_by_username[username_key] = group_attributes[username_key]
         group = @company
           .public_send(ScimRails.config.scim_groups_scope)
