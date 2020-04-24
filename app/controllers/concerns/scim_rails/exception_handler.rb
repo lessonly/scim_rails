@@ -11,10 +11,16 @@ module ScimRails
     class UnsupportedPatchRequest < StandardError
     end
 
-    class InvalidPutMembers < StandardError
+    class InvalidMembers < StandardError
     end
 
     class InvalidActiveParam < StandardError
+    end
+
+    class UnsupportedGroupPatchRequest < StandardError
+    end
+
+    class BadPatchPath < StandardError
     end
 
     included do
@@ -68,11 +74,22 @@ module ScimRails
         )
       end
 
-      rescue_from ScimRails::ExceptionHandler::InvalidPutMembers do
+      rescue_from ScimRails::ExceptionHandler::UnsupportedGroupPatchRequest do
         json_response(
           {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
-            detail: "Invalid PUT request. The 'members' attribute of the request must exist and be an array of hashes.",
+            detail: "Invalid PATCH request. The operations supported are 'add', 'replace', and 'remove'",
+            status: "422"
+          },
+          :unprocessable_entity
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::InvalidMembers do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid request. The attribute for new members ('members' for PUT, 'value' for PATCH) must exist and be an array of hashes",
             status: "400"
           },
           :bad_request
@@ -87,6 +104,17 @@ module ScimRails
             status: "400"
           },
           :bad_request
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::BadPatchPath do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid PATCH request. The 'path' was not able to be processed",
+            status: "422"
+          },
+          :unprocessable_entity
         )
       end
 

@@ -58,31 +58,55 @@ module ScimRails
       member_ids = params["members"]&.map{ |member| member["value"] }
 
       group.users.clear
-      member_ids.each do |id|
-        user = @company.public_send(ScimRails.config.scim_users_scope).find(id)
-        group.users << user
+      add_members(group, member_ids)
+
+      json_scim_group_response(object: group)
+    end
+
+    def patch_update
+      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+
+      params["Operations"].each do |operation|
+        case operation["op"]
+        when "replace"
+          patch_replace(group, operation)
+        when "add"
+          patch_add(group, operation)
+        when "remove"
+          patch_remove(group, operation)
+        else
+          raise ScimRails::ExceptionHandler::UnsupportedGroupPatchRequest
+        end
       end
 
       json_scim_group_response(object: group)
     end
 
-    # TODO: complete method
-    def patch_update
-
-    end
-
     private
 
-    def put_error_check
-      members = params["members"]
-
-      raise ScimRails::ExceptionHandler::InvalidPutMembers unless (members.is_a?(Array) && array_of_hashes?(members))
+    def member_error_check(members)
+      raise ScimRails::ExceptionHandler::InvalidMembers unless (members.is_a?(Array) && array_of_hashes?(members))
 
       member_ids = members.map{ |member| member["value"] }
 
       member_ids.each do |id|
         @company.public_send(ScimRails.config.scim_users_scope).find(id)
       end
+    end
+
+    def add_members(group, member_ids)
+      member_ids.each do |id|
+        user = @company.public_send(ScimRails.config.scim_users_scope).find(id)
+        if group.users.include? user
+
+        else
+          group.users << user
+        end
+      end
+    end
+
+    def put_error_check
+      member_error_check(params["members"])
         
       return if put_active_param.nil?
 
@@ -96,12 +120,91 @@ module ScimRails
       end
     end
 
-    def array_of_hashes?(array)
-      array.each do |element|
-        return false unless element.is_a?(Hash)
+    def patch_replace(group, operation)
+      case operation["path"]
+      when "members"
+        member_error_check(operation["value"])
+
+        group.users.clear
+
+        member_ids = operation["value"].map{ |member| member["value"] }
+        add_members(group, member_ids)
+
+      when nil
+        group_attributes = permitted_group_params(operation["value"])
+
+        active_param = operation.dig("value", "active")
+        status = patch_group_status(active_param)
+
+        group.update!(group_attributes.compact)
+
+        return if status.nil?
+        provision_method = status ? ScimRails.config.group_reprovision_method : ScimRails.config.group_deprovision_method
+        group.public_send(provision_method)
+
+      else
+        raise ScimRails::ExceptionHandler::BadPatchPath
+      end
+    end
+
+    def patch_add(group, operation)
+      member_error_check(operation["value"])
+
+      member_ids = operation["value"].map{ |member| member["value"] }
+
+      add_members(group, member_ids)
+    end
+
+    def patch_remove(group, operation)
+      path_string = operation["path"]
+
+      if path_string == "members"
+        group.users.delete_all
+        return
       end
 
-      return true
+      # Everything before square brackets
+      path = path_string.match(/([^\[]+)/).to_s
+
+      # Everything within the square brackets
+      filter = path_string.match(/(?<=\[).+?(?=\])/).to_s
+
+      # Everything after the square brackets (this should be empty)
+      extra = path_string.match(/(?<=\]).*/).to_s
+
+      raise ScimRails::ExceptionHandler::BadPatchPath unless (path == "members" && extra == "")
+
+      query = filter_to_query(filter)
+
+      members = @company
+          .public_send(ScimRails.config.scim_users_scope)
+          .where("#{query.query_elements[0]} #{query.operator} ?", query.parameter)
+
+      members.each do |member|
+        group.users.find(member.id)
+        group.users.delete(member)
+      end
+    end
+
+    def filter_to_query(filter)
+      args = filter.split(' ')
+
+      raise ScimRails::ExceptionHandler::BadPatchPath unless args.length == 3
+
+      # Convert the attribute from SCIM schema form to how it appears in the model so the query can be done
+      attribute = ScimRails.config.group_member_schema[args[0].to_sym].to_s
+
+      operator = args[1]
+      parameter = args[2]
+
+      parsed_filter = [attribute, operator, parameter].join(' ')
+      query = ScimRails::ScimQueryParser.new(parsed_filter)
+
+      query
+    end
+
+    def array_of_hashes?(array)
+      array.all? { |hash| hash.is_a?(Hash) }
     end
 
     def permitted_group_params(parameters)
@@ -125,13 +228,24 @@ module ScimRails
           found_path = path_for(attribute, object, [*path, key])
           return found_path if found_path
         end
-        nil
       when Array
         at_path.each_with_index do |value, index|
           found_path = path_for(attribute, object, [*path, index])
           return found_path if found_path
         end
+      end
+    end
+
+    def patch_group_status(active_param)
+      case active_param
+      when true, "true", 1
+        true
+      when false, "false", 0
+        false
+      when nil
         nil
+      else
+        raise ScimRails::ExceptionHandler::InvalidActiveParam
       end
     end
 
