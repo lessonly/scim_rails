@@ -166,12 +166,15 @@ module ScimRails
       end
 
       # Everything before square brackets
+      # E.g. given a path_string of "prefix[inner]suffix", pre_bracket_path will be "prefix"
       pre_bracket_path = path_string.match(/([^\[]+)/).to_s
 
       # Everything within the square brackets
+      # E.g. using path_string from the above example, filter will be "inner"
       filter = path_string.match(/(?<=\[).+?(?=\])/).to_s
 
       # Everything after the square brackets (this should be empty)
+      # E.g. using path_string from the above example, path_suffix will be "suffix"
       path_suffix = path_string.match(/(?<=\]).*/).to_s
 
       raise ScimRails::ExceptionHandler::BadPatchPath unless (pre_bracket_path == "members" && path_suffix == "")
@@ -193,6 +196,7 @@ module ScimRails
       raise ScimRails::ExceptionHandler::BadPatchPath unless args.length == 3
 
       # Convert the attribute from SCIM schema form to how it appears in the model so the query can be done
+      # E.g. in the dummy app configuration, "value" as the attributes is converted like so: "value" -> :value -> :id -> "id"
       attribute = ScimRails.config.group_member_schema[args[0].to_sym].to_s
 
       operator = args[1]
