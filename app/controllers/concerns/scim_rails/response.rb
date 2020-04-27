@@ -17,6 +17,9 @@ module ScimRails
         response = list_response(object, counts)
       when "show", "create", "put_update", "patch_update"
         response = user_response(object)
+      when "delete"
+        head status
+        return
       end
 
       render \
