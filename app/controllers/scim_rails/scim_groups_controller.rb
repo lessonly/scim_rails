@@ -57,7 +57,7 @@ module ScimRails
 
       member_ids = params["members"]&.map{ |member| member["value"] }
 
-      group.users.clear
+      group.public_send(ScimRails.config.scim_group_member_scope).clear
       add_members(group, member_ids)
 
       json_scim_group_response(object: group)
@@ -97,10 +97,10 @@ module ScimRails
     def add_members(group, member_ids)
       member_ids.each do |id|
         user = @company.public_send(ScimRails.config.scim_users_scope).find(id)
-        if group.users.include? user
+        if group.public_send(ScimRails.config.scim_group_member_scope).include? user
 
         else
-          group.users << user
+          group.public_send(ScimRails.config.scim_group_member_scope) << user
         end
       end
     end
@@ -120,27 +120,35 @@ module ScimRails
       end
     end
 
+    def patch_replace_members(group, operation)
+      member_error_check(operation["value"])
+
+      group.public_send(ScimRails.config.scim_group_member_scope).clear
+
+      member_ids = operation["value"].map{ |member| member["value"] }
+      add_members(group, member_ids)
+    end
+
+    def patch_replace_attributes(group, operation)
+      group_attributes = permitted_group_params(operation["value"])
+
+      active_param = operation.dig("value", "active")
+      status = patch_group_status(active_param)
+
+      group.update!(group_attributes.compact)
+
+      return if status.nil?
+      provision_method = status ? ScimRails.config.group_reprovision_method : ScimRails.config.group_deprovision_method
+      group.public_send(provision_method)
+    end
+
     def patch_replace(group, operation)
       case operation["path"]
       when "members"
-        member_error_check(operation["value"])
-
-        group.users.clear
-
-        member_ids = operation["value"].map{ |member| member["value"] }
-        add_members(group, member_ids)
+        patch_replace_members(group, operation)
 
       when nil
-        group_attributes = permitted_group_params(operation["value"])
-
-        active_param = operation.dig("value", "active")
-        status = patch_group_status(active_param)
-
-        group.update!(group_attributes.compact)
-
-        return if status.nil?
-        provision_method = status ? ScimRails.config.group_reprovision_method : ScimRails.config.group_deprovision_method
-        group.public_send(provision_method)
+        patch_replace_attributes(group, operation)
 
       else
         raise ScimRails::ExceptionHandler::BadPatchPath
@@ -159,20 +167,20 @@ module ScimRails
       path_string = operation["path"]
 
       if path_string == "members"
-        group.users.delete_all
+        group.public_send(ScimRails.config.scim_group_member_scope).delete_all
         return
       end
 
       # Everything before square brackets
-      path = path_string.match(/([^\[]+)/).to_s
+      pre_bracket_path = path_string.match(/([^\[]+)/).to_s
 
       # Everything within the square brackets
       filter = path_string.match(/(?<=\[).+?(?=\])/).to_s
 
       # Everything after the square brackets (this should be empty)
-      extra = path_string.match(/(?<=\]).*/).to_s
+      path_suffix = path_string.match(/(?<=\]).*/).to_s
 
-      raise ScimRails::ExceptionHandler::BadPatchPath unless (path == "members" && extra == "")
+      raise ScimRails::ExceptionHandler::BadPatchPath unless (pre_bracket_path == "members" && path_suffix == "")
 
       query = filter_to_query(filter)
 
@@ -181,7 +189,7 @@ module ScimRails
           .where("#{query.query_elements[0]} #{query.operator} ?", query.parameter)
 
       members.each do |member|
-        group.users.delete(member.id)
+        group.public_send(ScimRails.config.scim_group_member_scope).delete(member.id)
       end
     end
 
