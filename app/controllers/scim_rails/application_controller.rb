@@ -37,10 +37,7 @@ module ScimRails
     end
     
     # Shared stuff...
-    def find_value_for(attribute)
-      params.dig(*path_for(attribute))
-    end
-
+    
     # `path_for` is a recursive method used to find the "path" for
     # `.dig` to take when looking for a given attribute in the
     # params.
@@ -66,30 +63,6 @@ module ScimRails
         end
         nil
       end
-    end
-
-    def active?
-      active = put_active_param
-      active = patch_active_param if active.nil?
-
-      case active
-      when true, "true", 1
-        true
-      when false, "false", 0
-        false
-      else
-        raise ActiveRecord::RecordInvalid
-      end
-    end
-
-    def put_active_param
-      params[:active]
-    end
-
-    def patch_active_param
-      active = params.dig("Operations", 0, "value", "active")
-      raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if active.nil?
-      active
     end
   end
 end
