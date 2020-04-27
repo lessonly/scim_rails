@@ -71,8 +71,9 @@ module ScimRails
         status = patch_status(active_param)
         
         next if status.nil?
-        user.public_send(ScimRails.config.user_reprovision_method) if status
-        user.public_send(ScimRails.config.user_deprovision_method) unless status
+
+        provision_method = status ? ScimRails.config.user_reprovision_method : ScimRails.config.user_deprovision_method
+        user.public_send(provision_method)
       end
 
       json_scim_response(object: user)
