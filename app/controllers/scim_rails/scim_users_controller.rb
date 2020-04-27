@@ -28,10 +28,13 @@ module ScimRails
 
     def create
       if ScimRails.config.scim_user_prevent_update_on_create
-        user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_user_params)
+        user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_params(params))
       else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
+
         find_by_username = Hash.new
+        permitted_user_params = permitted_params(params)
+
         find_by_username[username_key] = permitted_user_params[username_key]
         user = @company
           .public_send(ScimRails.config.scim_users_scope)
@@ -50,15 +53,29 @@ module ScimRails
     def put_update
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       update_status(user) unless put_active_param.nil?
-      user.update!(permitted_user_params)
+      user.update!(permitted_params(params))
       json_scim_response(object: user)
     end
 
-    # TODO: PATCH will only deprovision or reprovision users.
-    # This will work just fine for Okta but is not SCIM compliant.
     def patch_update
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
-      update_status(user)
+
+      params["Operations"].each do |operation|
+        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"] != "replace"
+
+        changed_attributes = permitted_params(operation["value"])
+
+        user.update!(changed_attributes.compact)
+
+        active_param = operation.dig("value", "active")
+        status = patch_status(active_param)
+        
+        next if status.nil?
+
+        provision_method = status ? ScimRails.config.user_reprovision_method : ScimRails.config.user_deprovision_method
+        user.public_send(provision_method)
+      end
+
       json_scim_response(object: user)
     end
 
@@ -70,15 +87,43 @@ module ScimRails
 
     private
 
-    def permitted_user_params
+    def permitted_params(parameters)
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
-        hash[attribute] = find_value_for(attribute)
+        hash[attribute] = parameters.dig(*path_for(attribute))
       end
     end
 
     def update_status(user)
       user.public_send(ScimRails.config.user_reprovision_method) if active?
       user.public_send(ScimRails.config.user_deprovision_method) unless active?
+    end
+
+    def patch_status(active_param)
+      case active_param
+      when true, "true", 1
+        true
+      when false, "false", 0
+        false
+      else
+        nil
+      end
+    end
+
+    def active?
+      active = put_active_param
+
+      case active
+      when true, "true", 1
+        true
+      when false, "false", 0
+        false
+      else
+        raise ActiveRecord::RecordInvalid
+      end
+    end
+
+    def put_active_param
+      params[:active]
     end
   end
 end
