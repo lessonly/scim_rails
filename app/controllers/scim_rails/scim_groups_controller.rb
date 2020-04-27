@@ -89,20 +89,14 @@ module ScimRails
 
       member_ids = members.map{ |member| member["value"] }
 
-      member_ids.each do |id|
-        @company.public_send(ScimRails.config.scim_users_scope).find(id)
-      end
+      @company.public_send(ScimRails.config.scim_users_scope).find(member_ids)
     end
 
     def add_members(group, member_ids)
-      member_ids.each do |id|
-        user = @company.public_send(ScimRails.config.scim_users_scope).find(id)
-        if group.public_send(ScimRails.config.scim_group_member_scope).include? user
-
-        else
-          group.public_send(ScimRails.config.scim_group_member_scope) << user
-        end
-      end
+      new_member_ids = member_ids - group.users.pluck(:id)
+      new_members = @company.public_send(ScimRails.config.scim_users_scope).find(new_member_ids)
+      
+      group.users << new_members if new_members.present?
     end
 
     def put_error_check
