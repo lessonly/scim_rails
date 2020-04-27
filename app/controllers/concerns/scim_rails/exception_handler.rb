@@ -55,7 +55,7 @@ module ScimRails
         json_response(
           {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
-            detail: "Invalid PATCH request. This PATCH endpoint only supports deprovisioning and reprovisioning records.",
+            detail: "Invalid PATCH request. This PATCH endpoint only 'replace' operations.",
             status: "422"
           },
           :unprocessable_entity
