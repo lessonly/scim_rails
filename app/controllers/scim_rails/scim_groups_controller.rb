@@ -82,6 +82,12 @@ module ScimRails
       json_scim_group_response(object: group)
     end
 
+    def delete
+      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+      group.delete
+      json_scim_group_response(object: nil, status: :no_content)
+    end
+
     private
 
     def member_error_check(members)

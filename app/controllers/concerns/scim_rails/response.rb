@@ -35,6 +35,9 @@ module ScimRails
         response = list_group_response(object, counts)
       when "show", "create", "put_update", "patch_update"
         response = group_response(object)
+      when "delete"
+        head status
+        return
       end
 
       render \
