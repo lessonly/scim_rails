@@ -99,10 +99,10 @@ module ScimRails
     end
 
     def add_members(group, member_ids)
-      new_member_ids = member_ids - group.users.pluck(:id)
+      new_member_ids = member_ids - group.public_send(ScimRails.config.scim_group_member_scope).pluck(:id)
       new_members = @company.public_send(ScimRails.config.scim_users_scope).find(new_member_ids)
       
-      group.users << new_members if new_members.present?
+      group.public_send(ScimRails.config.scim_group_member_scope) << new_members if new_members.present?
     end
 
     def put_error_check
