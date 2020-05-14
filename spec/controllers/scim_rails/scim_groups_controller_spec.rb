@@ -225,7 +225,108 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         http_login(company)
       end
 
-      # TODO: add tests once method is implemented
+      let(:group_name) { Faker::Games::Pokemon.name }
+      let(:group_email) { Faker::Internet.email }
+
+      context "with valid credentials" do
+        let(:modified_group_email) { Faker::Internet.email }
+
+        let(:created_group) { company.groups.first }
+
+        it "returns scim+json credentials" do
+          post :create, {
+            displayName: Faker::Games::Pokemon.name,
+            email: Faker::Internet.email,
+            members: []
+          }
+  
+          expect(response.content_type).to eq "application/scim+json"
+        end
+
+        it "is successful" do
+          expect(company.groups.count).to eq(0)
+          expect(Group.count).to eq(0)
+
+          post :create, {
+            displayName: group_name,
+            email: group_email,
+            members: []
+          }
+
+          expect(response.status).to eq(201)
+
+          expect(company.groups.count).to eq(1)
+          expect(Group.count).to eq(1)
+
+          expect(created_group.display_name).to eq(group_name)
+          expect(created_group.email).to eq(group_email)
+        end
+
+        it "ignores unconfigured parameters" do
+          post :create, {
+            displayName: Faker::Games::Pokemon.name,
+            email: Faker::Internet.email,
+            members: [],
+            unconfiguredParam: "unconfigured"
+          }
+
+          expect(response.status).to eq(201)
+          expect(company.groups.count).to eq(1)
+        end
+
+        it 'updates group if existing display name used' do
+          create(:group, display_name: group_name, company: company)
+
+          post :create, {
+            displayName: group_name,
+            email: modified_group_email,
+            members: []
+          }
+
+          expect(response.status).to eq(201)
+
+          expect(company.groups.count).to eq(1)
+          expect(created_group.email).to eq(modified_group_email)
+        end
+
+        it "creates and archives user" do
+          post :create, {
+            displayName: group_name,
+            email: group_email,
+            members: [],
+            active: "false"
+          }
+
+          expect(response.status).to eq(201)
+          expect(company.groups.count).to eq(1)
+
+          expect(created_group.archived?).to eq(true)
+        end
+      end
+
+      context "with invalid credentials" do
+        it "returns 422 if required params missing" do
+          post :create, {
+            displayName: Faker::Name.name
+          }
+
+          expect(response.status).to eq(422)
+          expect(company.groups.count).to eq(0)
+        end
+
+        it "returns 409 if display name taken and updating not allowed" do
+          allow(ScimRails.config).to receive(:scim_group_prevent_update_on_create).and_return(true)
+          create(:group, display_name: group_name, company: company)
+
+          post :create, {
+            displayName: group_name,
+            email: group_email
+          }
+
+          expect(response.status).to eq(409)
+          expect(company.groups.count).to eq(1)
+        end
+      end
     end
   end
 
@@ -252,13 +353,168 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         http_login(company)
       end
 
-      # TODO: add tests once method is implemented
+      let(:original_user_list_length) { 3 }
+      let(:replacement_list_length) { 2 }
+
+      let!(:user_list) { create_list(:user, original_user_list_length, company: company) }
+      let!(:target_group) { create(:group, users: user_list, company: company) }
+
+      let(:updated_group) { company.groups.first }
+      let(:updated_user_list) { updated_group.users }
+
+      context "with valid credentials" do
+        let(:modified_name) { Faker::Games::Pokemon.name }
+        let(:modified_email) { Faker::Internet.email }
+
+        let!(:replacement_users) { create_list(:user, replacement_list_length, company: company) }
+        let(:replacement_ids) { replacement_users.map{ |user| user[:id] }}
+
+        it "returns scim+json content type" do
+          put :put_update, put_params(id: target_group.id)
+
+          expect(response.content_type).to eq("application/scim+json")
+        end
+
+        it "successfully updates a group" do
+          put :put_update, put_params(id: target_group.id, displayName: modified_name, email: modified_email)
+
+          expect(response.status).to eq(200)
+
+          expect(updated_group.display_name).to eq(modified_name)
+          expect(updated_group.email).to eq(modified_email)
+        end
+
+        it "reprovisions a group" do
+          put :put_update, put_params(id: target_group, active: true)
+
+          expect(response.status).to eq(200)
+
+          expect(updated_group.active?).to eq(true)
+        end
+
+        it "deprovisions a group" do
+          put :put_update, put_params(id: target_group, active: false)
+
+          expect(response.status).to eq(200)
+
+          expect(updated_group.active?).to eq(false)
+        end
+
+        it "replaces group's user list" do
+          put :put_update, put_params(id: target_group.id, members: [ { value: replacement_ids[0] }, { value: replacement_ids[1] } ])
+
+          expect(response.status).to eq(200)
+
+          expect(updated_user_list.length).to eq(replacement_list_length)
+          expect(updated_user_list.map{ |user| user[:id] }).to match_array(replacement_ids)
+        end
+
+        it "does not add duplicates to groups" do
+          put :put_update, put_params(id: target_group.id, members: [ { value: replacement_ids[0] }, { value: replacement_ids[1] }, { value: replacement_ids[1] } ])
+
+          expect(response.status).to eq(200)
+
+          expect(updated_user_list.length).to eq(replacement_list_length)
+        end
+
+        it "clears a group's user list" do
+          put :put_update, put_params(id: target_group.id)
+
+          expect(response.status).to eq(200)
+
+          expect(updated_user_list).to be_empty
+        end
+
+      end
+
+      context "without valid credentials" do
+        let(:invalid_group_id) { "invalid_group_id" }
+        let(:invalid_user_id) { "invalid_user_id" }
+
+        it "returns :not_found for id without a group" do
+          put :put_update, put_params(id: invalid_group_id)
+
+          expect(response.status).to eq(404)
+        end
+
+        it "returns 422 if attribute params missing" do
+          put :put_update, {
+            id: target_group.id,
+            displayName: "Joe",
+            members: []
+          }
+
+          expect(response.status).to eq(422)
+
+          expect(updated_user_list.length).to eq(original_user_list_length)
+        end
+
+        it "returns 400 if active param invalid" do
+          put :put_update, put_params(id: target_group.id, active: "hotdog")
+
+          expect(response.status).to eq(400)
+
+          expect(updated_user_list.length).to eq(original_user_list_length)
+        end
+
+        context "with invalid 'members' params" do
+          let(:response_body) { JSON.parse(response.body) }
+
+          it "returns :bad_request if missing" do
+            put :put_update, {
+              id: target_group.id
+            }
+
+            expect(response.status).to eq(400)
+
+            expect(updated_user_list.length).to eq(original_user_list_length)
+          end
+
+          it "returns :bad_request if not an array" do
+            put :put_update, {
+              id: target_group.id,
+              members: Faker::Games::Pokemon.name
+            }
+
+            expect(response.status).to eq(400)
+
+            expect(updated_user_list.length).to eq(original_user_list_length)
+          end
+
+          it "returns :bad_request if not an array of hashes" do
+            put :put_update, {
+              id: target_group.id,
+              members: [ Faker::Games::Pokemon.name, Faker::Games::Pokemon.location, Faker::Games::Pokemon.move ]
+            }
+
+            expect(response.status).to eq(400)
+
+            expect(updated_user_list.length).to eq(original_user_list_length)
+          end
+
+          it "returns :not_found for id without a user" do
+            put :put_update, put_params(
+              id: target_group.id,
+              members: [
+                {
+                  value: invalid_user_id
+                }
+              ]
+            )
+  
+            expect(response.status).to eq(404)
+
+            expect(updated_user_list.length).to eq(original_user_list_length)
+          end
+        end
+
+      end
     end
   end
 
   describe "patch update" do
     context "when unauthorized" do
-      before { patch :patch_update, patch_params(id: 1) }
+      before { patch :patch_update, { id: 1 } }
 
       it "returns scim+json content type" do
         expect(response.content_type).to eq "application/scim+json"
@@ -279,81 +535,311 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         http_login(company)
       end
 
-      # TODO: add tests once method is implemented
-    end
-  end
+      let(:user_list_length) { 3 }
 
-  describe "delete" do
-    let(:company) { create(:company) }
+      let!(:user_list) { create_list(:user, user_list_length, company: company) }
+      let!(:target_group) { create(:group, users: user_list, company: company) }
 
-    context "when unauthorized" do
-      before { delete :delete, { id: 1 } }
+      context "with valid credentials" do
+        let!(:new_user) { create(:user, company: company) }
+        let(:new_user_id) { new_user.id }
 
-      it "returns scim+json content type" do
-        expect(response.content_type).to eq "application/scim+json"
-      end
+        let(:updated_group) { company.groups.first }
+        let(:updated_user_list) { updated_group.users }
+        let(:updated_user_ids) { updated_user_list.map{ |user| user[:id] } }
 
-      it "fails with no credentials" do
-        expect(response.status).to eq 401
-      end
+        let(:new_display_name) { Faker::Name.first_name }
+        let(:new_email) { Faker::Internet.email }
 
-      it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
-        expect(response.status).to eq 401
-      end
-    end
+        it 'returns scim+json content type' do
+          patch :patch_update, {
+            id: target_group.id,
+            Operations: []
+          }
 
-    context "when authorized" do
-      before :each do
-        http_login(company)
-      end
+          expect(response.content_type).to eq("application/scim+json")
+        end
 
-      let(:group_id) { 1 }
-      let(:invalid_id) { "invalid_id" }
-      
-      let!(:user_list) { create_list(:user, 3, company: company) }
+        context "when using 'replace' operation" do
+          let(:replacement_list_length) { 2 }
+          let!(:replacement_users) { create_list(:user, replacement_list_length, company: company) }
+          let(:replacement_ids) { replacement_users.map{ |user| user[:id] } }
 
-      let!(:group) { create(:group, users: user_list, company: company) }
+          it 'updates group attributes' do
+            patch :patch_update, patch_replace_params(id: target_group.id, value: { displayName: new_display_name })
+  
+            expect(response.status).to eq(200)
+  
+            expect(updated_group.display_name).to eq(new_display_name)
+          end
+  
+          it 'reprovisions a group' do
+            patch :patch_update, patch_replace_params(id: target_group.id, value: { active: true })
+  
+            expect(response.status).to eq(200)
+  
+            expect(updated_group.active?).to eq(true)
+          end
+  
+          it 'deprovisions a group' do
+            patch :patch_update, patch_replace_params(id: target_group.id, value: { active: false })
+  
+            expect(response.status).to eq(200)
+  
+            expect(updated_group.active?).to eq(false)
+          end
 
-      it "returns :not_found for invalid id" do
-        delete :delete, { id: invalid_id }
+          it "replaces a group's user list with another" do
+            patch :patch_update, patch_replace_params(id: target_group.id, path: "members", value: [ { value: replacement_ids[0] }, { value: replacement_ids[1] } ])
 
-        expect(response.status).to eq(404)
-      end
+            expect(response.status).to eq(200)
 
-      context "with unauthorized group" do
-        let(:unauthorized_id) { 2 }
+            expect(updated_user_list.length).to eq(replacement_list_length)
+            expect(updated_user_ids).to match_array(replacement_ids)
+          end
 
-        let!(:new_company) { create(:company) }
-        let!(:unauthorized_group) { create(:group, company: new_company, id: unauthorized_id) }
+          it "replaces a group's user list to be empty" do
+            patch :patch_update, patch_replace_params(id: target_group.id, path: "members", value: [])
 
-        it "returns :not_found for correct id but unauthorized company" do
-          delete :delete, { id: unauthorized_id }
+            expect(response.status).to eq(200)
 
-          expect(response.status).to eq(404)
+            expect(updated_user_list).to be_empty
+          end
+        end
+
+        context "when using 'add' operation" do
+          it 'adds user to group' do
+            patch :patch_update, patch_add_params(id: target_group.id, value: [ { value: new_user_id } ])
+
+            expect(response.status).to eq(200)
+
+            expect(updated_user_list.length).to eq(user_list_length + 1)
+            expect(updated_user_ids).to include(new_user_id)
+          end
+
+          it 'will not add same user to group more than once' do
+            patch :patch_update, patch_add_params(id: target_group.id, value: [ { value: new_user_id }, { value: new_user_id } ])
+
+            expect(updated_user_list.length).to eq(user_list_length + 1)
+          end
+        end
+
+        context "when using 'remove' operation" do
+          let(:target_user_id) { user_list.first.id }
+
+          it 'removes target users from group' do
+            patch :patch_update, patch_remove_params(id: target_group.id, path: "members[value eq \"#{target_user_id}\"]")
+
+            expect(response.status).to eq(200)
+            
+            expect(updated_user_list.length).to eq(user_list_length - 1)
+          end
+
+          it 'does not remove if values not found' do
+            patch :patch_update, patch_remove_params(id: target_group.id, path: "members[value eq \"unknown\"]")
+
+            expect(response.status).to eq(200)
+
+            expect(updated_user_list.length).to eq(user_list_length)
+          end
+
+          it 'removes all users if no member filter' do
+            patch :patch_update, patch_remove_params(id: target_group.id, path: "members")
+
+            expect(response.status).to eq(200)
+
+            expect(updated_user_list).to be_empty
+          end
+        end
+
+        it "works with more than one operation" do
+          patch :patch_update, {
+            id: target_group.id,
+            Operations: [
+              {
+                op: "replace",
+                value: {
+                  email: new_email,
+                  displayName: new_display_name
+                }
+              },
+              {
+                op: "remove",
+                path: "members"
+              },
+              {
+                op: "add",
+                value: [
+                  {
+                    value: new_user_id
+                  }
+                ]
+              }
+            ]
+          }
+
+          expect(response.status).to eq(200)
+
+          expect(updated_group.display_name).to eq(new_display_name)
+          expect(updated_group.email).to eq(new_email)
+
+          expect(updated_user_list.length).to eq(1)
+          expect(updated_user_ids).to include(new_user_id)
         end
       end
 
-      it "successfully deletes for correct id provided" do
-        delete :delete, { id: group_id }
+      context "without valid credentials" do
+        let(:invalid_id) { "invalid_id" }
 
-        expect(response.status).to eq(204)
-        expect(Group.count).to eq(0)
+        it "returns 404 if for id not belonging to group" do
+          patch :patch_update, {
+            id: invalid_id,
+            Operations: []
+          }
+
+          expect(response.status).to eq(404)
+        end
+
+        it 'returns 404 when adding nonexistent user' do
+          patch :patch_update, patch_add_params(id: target_group, value: [ { value: "N/A" } ])
+
+          expect(response.status).to eq(404)
+        end
+
+        it "returns 400 for invalid active param" do
+          patch :patch_update, patch_replace_params(id: target_group.id, value: { active: "hotdog" })
+
+          expect(response.status).to eq(400)
+        end
+
+        context "with unprocessable paths" do
+          it "returns 422 for 'replace'" do
+            patch :patch_update, patch_replace_params(id: target_group.id, path: "unprocessable_path")
+
+            expect(response.status).to eq(422)
+          end
+
+          it "returns 422 for 'remove'" do
+            patch :patch_update, patch_remove_params(id: target_group.id, path: "unprocessable_path")
+
+            expect(response.status).to eq(422)
+          end
+
+          it "returns 422 for bad filter" do
+            patch :patch_update, patch_remove_params(id: target_group.id, path: "members[value eq]")
+
+            expect(response.status).to eq(422)
+          end
+        end
+      end
+
+    end
+
+    describe "delete" do
+      let(:company) { create(:company) }
+  
+      context "when unauthorized" do
+        before { delete :delete, { id: 1 } }
+  
+        it "returns scim+json content type" do
+          expect(response.content_type).to eq "application/scim+json"
+        end
+  
+        it "fails with no credentials" do
+          expect(response.status).to eq 401
+        end
+  
+        it "fails with invalid credentials" do
+          request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+          expect(response.status).to eq 401
+        end
+      end
+  
+      context "when authorized" do
+        before :each do
+          http_login(company)
+        end
+  
+        let(:group_id) { 1 }
+        let(:invalid_id) { "invalid_id" }
+        
+        let!(:user_list) { create_list(:user, 3, company: company) }
+  
+        let!(:group) { create(:group, users: user_list, company: company) }
+  
+        it "returns :not_found for invalid id" do
+          delete :delete, { id: invalid_id }
+  
+          expect(response.status).to eq(404)
+        end
+  
+        context "with unauthorized group" do
+          let(:unauthorized_id) { 2 }
+  
+          let!(:new_company) { create(:company) }
+          let!(:unauthorized_group) { create(:group, company: new_company, id: unauthorized_id) }
+  
+          it "returns :not_found for correct id but unauthorized company" do
+            delete :delete, { id: unauthorized_id }
+  
+            expect(response.status).to eq(404)
+          end
+        end
+  
+        it "successfully deletes for correct id provided" do
+          delete :delete, { id: group_id }
+  
+          expect(response.status).to eq(204)
+          expect(Group.count).to eq(0)
+        end
       end
     end
   end
 
-  def patch_params(id:, active: false)
+  def put_params(id:, displayName: Faker::Name.name, email: Faker::Internet.email, members: [], active: true)
+    {
+      id: id,
+      displayName: displayName,
+      email: email,
+      members: members,
+      active: active
+    }
+  end
+
+  def patch_remove_params(id:, path:)
+    {
+      id: id,
+      Operations: [
+        {
+          op: "remove",
+          path: path
+        }
+      ]
+    }
+  end
+
+  def patch_add_params(id:, value:)
+    {
+      id: id,
+      Operations: [
+        {
+          op: "add",
+          value: value
+        }
+      ]
+    }
+  end
+
+  def patch_replace_params(id:, path: nil, value: nil)
     {
       id: id,
       Operations: [
         {
           op: "replace",
-          value: {
-            active: active
-          }
+          path: path,
+          value: value
         }
       ]
-    }
+    }.compact
   end
 end

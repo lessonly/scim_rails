@@ -11,6 +11,18 @@ module ScimRails
     class UnsupportedPatchRequest < StandardError
     end
 
+    class InvalidMembers < StandardError
+    end
+
+    class InvalidActiveParam < StandardError
+    end
+
+    class UnsupportedGroupPatchRequest < StandardError
+    end
+
+    class BadPatchPath < StandardError
+    end
+
     included do
       # StandardError must be ordered _first_ or it will catch all exceptions
       #
@@ -56,6 +68,50 @@ module ScimRails
           {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
             detail: "Invalid PATCH request. This PATCH endpoint only 'replace' operations.",
+            status: "422"
+          },
+          :unprocessable_entity
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::UnsupportedGroupPatchRequest do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid PATCH request. The operations supported are 'add', 'replace', and 'remove'",
+            status: "422"
+          },
+          :unprocessable_entity
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::InvalidMembers do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid request. The attribute for new members ('members' for PUT, 'value' for PATCH) must exist and be an array of hashes",
+            status: "400"
+          },
+          :bad_request
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::InvalidActiveParam do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid request. The active param can only be 'true' or 'false'",
+            status: "400"
+          },
+          :bad_request
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::BadPatchPath do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Invalid PATCH request. The 'path' was not able to be processed",
             status: "422"
           },
           :unprocessable_entity
