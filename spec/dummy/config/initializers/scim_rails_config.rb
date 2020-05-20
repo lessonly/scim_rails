@@ -14,6 +14,9 @@ ScimRails.configure do |config|
   config.user_deprovision_method = :archive!
   config.user_reprovision_method = :unarchive!
 
+  config.custom_user_attributes = { random_attribute: true }
+  config.custom_group_attributes = { random_attribute: true }
+
   config.mutable_user_attributes = [
     :first_name,
     :last_name,

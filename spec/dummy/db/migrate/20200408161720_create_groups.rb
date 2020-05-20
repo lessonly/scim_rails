@@ -3,6 +3,7 @@ class CreateGroups < ActiveRecord::Migration
     create_table :groups do |t|
       t.string :display_name, null: false
       t.string :email, null: false
+      t.boolean :random_attribute, default: false
 
       t.integer :company_id
 

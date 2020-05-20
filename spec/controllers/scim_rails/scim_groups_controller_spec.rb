@@ -260,6 +260,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
 
           expect(created_group.display_name).to eq(group_name)
           expect(created_group.email).to eq(group_email)
+          expect(created_group.random_attribute).to eq(true)
         end
 
         it "ignores unconfigured parameters" do
