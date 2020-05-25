@@ -215,7 +215,7 @@ module ScimRails
     end
 
     def array_of_hashes?(array)
-      array.all? { |hash| hash.is_a?(Hash) }
+      array.all? { |hash| hash.is_a?(ActionController::Parameters) }
     end
 
     def permitted_group_params(parameters)
