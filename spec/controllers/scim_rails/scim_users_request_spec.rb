@@ -9,21 +9,21 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
     # params need to be transformed into a string to test if they are being parsed by Rack
 
     post "/scim_rails/scim/v2/Users",
-         {
-           name: {
-             givenName: "New",
-             familyName: "User",
-           },
-           emails: [
-             {
-               value: "new@example.com",
-             },
-           ],
-         }.to_json,
-         {
-           'Authorization': authorization,
-           'Content-Type': content_type,
-         }
+      params: {
+        name: {
+          givenName: "New",
+          familyName: "User",
+        },
+        emails: [
+          {
+            value: "new@example.com",
+          },
+        ],
+      }, as: :json,
+      headers: {
+        'Authorization': authorization,
+        'Content-Type': content_type,
+      }
   end
 
   describe "Content-Type" do
@@ -34,7 +34,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
 
       expect(request.params).to include :name
       expect(response.status).to eq 201
-      expect(response.content_type).to eq "application/scim+json"
+      expect(response.media_type).to eq "application/scim+json"
       expect(company.users.count).to eq 1
     end
 

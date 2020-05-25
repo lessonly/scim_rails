@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   
   s.required_ruby_version = "~> 2.4"
-  s.add_dependency "rails", ">= 4.2", "< 5.0"
+  s.add_dependency "rails", "~> 5.0.0"
   s.add_runtime_dependency "jwt", "~> 1.5.1"
   s.test_files = Dir["spec/**/*"]
 
@@ -30,5 +30,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency "faker"
   s.add_development_dependency "byebug"
   s.add_development_dependency "awesome_print"
-  s.add_development_dependency "sqlite3" #, "~> 1.3", "< 1.5"
+  s.add_development_dependency "sqlite3", "~> 1.3.6"
 end
