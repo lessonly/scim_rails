@@ -98,4 +98,12 @@ ScimRails.configure do |config|
     value: :id
   }
 
+  config.before_scim_response = lambda do |body|
+    puts "BEFORE SCIM REQUEST #{body}"
+  end
+
+  config.after_scim_response = lambda do |object, status|
+    puts "#{object} #{status}"
+  end
+
 end

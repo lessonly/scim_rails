@@ -1,6 +1,8 @@
 module ScimRails
   class ScimUsersController < ScimRails::ApplicationController
     def index
+      ScimRails.config.before_scim_response.call(request.params)
+
       if params[:filter].present?
         query = ScimRails::ScimQueryParser.new(params[:filter])
 
@@ -23,10 +25,14 @@ module ScimRails
         total: users.count
       )
 
+      ScimRails.config.after_scim_response.call(users, "RETRIEVED")
+
       json_scim_response(object: users, counts: counts)
     end
 
     def create
+      ScimRails.config.before_scim_response.call(request.params)
+
       if ScimRails.config.scim_user_prevent_update_on_create
         user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_params(params))
       else
@@ -42,22 +48,37 @@ module ScimRails
         user.update!(permitted_user_params)
       end
       update_status(user) unless put_active_param.nil?
+
+      ScimRails.config.after_scim_response.call(user, "CREATED")
+
       json_scim_response(object: user, status: :created)
     end
 
     def show
+      ScimRails.config.before_scim_response.call(request.params)
+
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
+
+      ScimRails.config.after_scim_response.call(user, "RETRIEVED")
+
       json_scim_response(object: user)
     end
 
     def put_update
+      ScimRails.config.before_scim_response.call(request.params)
+
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       update_status(user) unless put_active_param.nil?
       user.update!(permitted_params(params))
+
+      ScimRails.config.after_scim_response.call(user, "UPDATED")
+
       json_scim_response(object: user)
     end
 
     def patch_update
+      ScimRails.config.before_scim_response.call(request.params)
+
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
 
       params["Operations"].each do |operation|
@@ -76,12 +97,19 @@ module ScimRails
         user.public_send(provision_method)
       end
 
+      ScimRails.config.after_scim_response.call(user, "UPDATED")
+
       json_scim_response(object: user)
     end
 
     def delete
+      ScimRails.config.before_scim_response.call(request.params)
+
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       user.delete
+
+      ScimRails.config.after_scim_response.call(user, "DELETED")
+
       json_scim_response(object: nil, status: :no_content)
     end
 
