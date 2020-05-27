@@ -1,7 +1,7 @@
 module ScimRails
   class ScimGroupsController < ScimRails::ApplicationController
     def index
-      ScimRails.config.before_scim_response.call(request.params)
+      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       if params[:filter].present?
         query = ScimRails::ScimQueryParser.new(params[:filter])
@@ -20,13 +20,13 @@ module ScimRails
         total: groups.count
       )
 
-      ScimRails.config.after_scim_response.call(groups, "RETRIEVED")
+      ScimRails.config.after_scim_response.call(groups, "RETRIEVED") unless ScimRails.config.after_scim_response.nil?
 
       json_scim_group_response(object: groups, counts: counts)
     end
 
     def create
-      ScimRails.config.before_scim_response.call(request.params)
+      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       group_attributes = permitted_group_params(params)
 
@@ -44,23 +44,23 @@ module ScimRails
 
       update_group_status(group) unless put_active_param.nil?
 
-      ScimRails.config.after_scim_response.call(group, "CREATED")
+      ScimRails.config.after_scim_response.call(group, "CREATED") unless ScimRails.config.after_scim_response.nil?
 
       json_scim_group_response(object: group, status: :created)
     end
 
     def show
-      ScimRails.config.before_scim_response.call(request.params)
+      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
 
-      ScimRails.config.after_scim_response.call(group, "RETRIEVED")
+      ScimRails.config.after_scim_response.call(group, "RETRIEVED") unless ScimRails.config.after_scim_response.nil?
 
       json_scim_group_response(object: group)
     end
 
     def put_update
-      ScimRails.config.before_scim_response.call(request.params)
+      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
 
@@ -76,13 +76,13 @@ module ScimRails
       group.public_send(ScimRails.config.scim_group_member_scope).clear
       add_members(group, member_ids)
 
-      ScimRails.config.after_scim_response.call(group, "UPDATED")
+      ScimRails.config.after_scim_response.call(group, "UPDATED") unless ScimRails.config.after_scim_response.nil?
 
       json_scim_group_response(object: group)
     end
 
     def patch_update
-      ScimRails.config.before_scim_response.call(request.params)
+      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
 
@@ -99,18 +99,18 @@ module ScimRails
         end
       end
 
-      ScimRails.config.after_scim_response.call(group, "UPDATED")
+      ScimRails.config.after_scim_response.call(group, "UPDATED") unless ScimRails.config.after_scim_response.nil?
 
       json_scim_group_response(object: group)
     end
 
     def delete
-      ScimRails.config.before_scim_response.call(request.params)
+      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
       group.delete
 
-      ScimRails.config.after_scim_response.call(group, "DELETED")
+      ScimRails.config.after_scim_response.call(group, "DELETED") unless ScimRails.config.after_scim_response.nil?
 
       json_scim_group_response(object: nil, status: :no_content)
     end
