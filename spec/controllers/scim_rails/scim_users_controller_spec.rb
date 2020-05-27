@@ -269,6 +269,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(user.first_name).to eq "New"
         expect(user.last_name).to eq "User"
         expect(user.email).to eq "new@example.com"
+        expect(user.random_attribute).to eq true
       end
 
       it "ignores unconfigured params" do

@@ -118,7 +118,8 @@ module ScimRails
     def permitted_params(parameters)
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = parameters.dig(*path_for(attribute))
-      end
+      end.merge(ScimRails.config.custom_user_attributes)
+      
     end
 
     def update_status(user)

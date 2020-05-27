@@ -248,7 +248,7 @@ module ScimRails
     def permitted_group_params(parameters)
       ScimRails.config.mutable_group_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = parameters.dig(*group_path_for(attribute))
-      end
+      end.merge(ScimRails.config.custom_group_attributes)
     end
 
     def update_group_status(group)

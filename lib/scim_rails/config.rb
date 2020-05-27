@@ -42,6 +42,8 @@ module ScimRails
       :group_schema,
       :group_member_schema,
       :group_attributes,
+      :custom_user_attributes,
+      :custom_group_attributes,
       :before_scim_response,
       :after_scim_response,
 
@@ -55,6 +57,8 @@ module ScimRails
       @group_schema = {}
       @user_attributes = []
       @group_attributes = []
+      @custom_user_attributes = {}
+      @custom_group_attributes = {}
     end
 
     def mutable_user_attributes_schema
