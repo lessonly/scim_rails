@@ -128,4 +128,26 @@ ScimRails.configure do |config|
     :displayName,
     :members
   }
+
+  # Callback hook that will be called at the beginning of
+  # each controller method. Will take the body of a given
+  # request, i.e., the params, action, controller, etc.
+  # This hook can be used for logging information to help
+  # with troubleshooting but can be left nil or commented
+  # out if it is not needed.
+  config.before_scim_response = lambda do |body|
+    print "BEFORE SCIM RESPONSE #{body}"
+  end
+
+  # Callback hook that will be called at the end of each
+  # controller method, given that the request was
+  # successful and no errors occured. Will take the object
+  # that was retrieved/create/updated/deleted its status
+  # ("RETRIEVED", "CREATED", "UPDATED", "DELETED").
+  # This hook can be used for logging information to help
+  # troubleshoot but can be left nil or commented out if
+  # it is not needed.
+  config.after_scim_response = lambda do |object, status|
+    print "#{object} #{status}"
+  end
 end

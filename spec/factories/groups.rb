@@ -3,7 +3,7 @@ FactoryBot.define do
     company
     users { [] }
 
-    display_name { Faker::Name.name }
-    email { Faker::Internet.email }
+    sequence(:display_name) { |n| "#{Faker::Name.name}#{n}" }
+    sequence(:email) { |n| "#{Faker::Internet.email}#{n}" }
   end
 end

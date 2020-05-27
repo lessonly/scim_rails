@@ -43,7 +43,9 @@ module ScimRails
       :group_member_schema,
       :group_attributes,
       :custom_user_attributes,
-      :custom_group_attributes
+      :custom_group_attributes,
+      :before_scim_response,
+      :after_scim_response,
 
     def initialize
       @basic_auth_model = "Company"
