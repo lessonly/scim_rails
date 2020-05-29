@@ -12,12 +12,15 @@ module ScimRails
     end
 
     included do
-      # StandardError must be ordered _first_ or it will catch all exceptions
-      #
-      # TODO: Build a plugin/configuration for error handling so that the
-      # detailed production errors are logged somewhere if desired.
       if Rails.env.production?
-        rescue_from StandardError do
+        rescue_from StandardError do |exception|
+          on_error = ScimRails.config.on_error
+          if on_error.respond_to?(:call)
+            on_error.call(exception)
+          else
+            Rails.logger.error(exception.inspect)
+          end
+
           json_response(
             {
               schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],

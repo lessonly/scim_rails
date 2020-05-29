@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ScimRails
   class << self
     def configure
@@ -5,22 +7,26 @@ module ScimRails
     end
 
     def config
-      @_config ||= Config.new
+      @config ||= Config.new
     end
   end
 
+  # Class containing configuration of ScimRails
   class Config
-    ALGO_NONE = "none".freeze
+    ALGO_NONE = "none"
+
+    attr_writer \
+      :basic_auth_model,
+      :mutable_user_attributes_schema,
+      :scim_users_model
 
     attr_accessor \
-      :basic_auth_model,
       :basic_auth_model_authenticatable_attribute,
       :basic_auth_model_searchable_attribute,
       :mutable_user_attributes,
-      :mutable_user_attributes_schema,
+      :on_error,
       :queryable_user_attributes,
       :scim_users_list_order,
-      :scim_users_model,
       :scim_users_scope,
       :scim_user_prevent_update_on_create,
       :signing_secret,

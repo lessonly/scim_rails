@@ -246,6 +246,20 @@ Sample request:
 $ curl -X PATCH 'http://username:password@localhost:3000/scim/v2/Users/1' -d '{"schemas": ["urn:ietf:params:scim:api:messages:2.0:PatchOp"], "Operations": [{"op": "replace", "value": { "active": false }}]}' -H 'Content-Type: application/scim+json'
 ```
 
+### Error Handling
+
+By default, scim_rails will output any unhandled exceptions to your configured rails logs.
+
+If you would like, you can supply a custom handler for exceptions in the initializer. The only requirement is that the value you supply responds to `#call`.
+
+For example, you might want to notify Honeybadger:
+
+```ruby
+ScimRails.configure do |config|
+  config.on_error = ->(e) { Honeybadger.notify(e) }
+end
+```
+
 ## Contributing
 
 ### [Code of Conduct](https://github.com/lessonly/scim_rails/blob/master/CODE_OF_CONDUCT.md)
