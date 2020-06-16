@@ -569,6 +569,53 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         response_body = JSON.parse(response.body)
         expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
       end
+
+      it "returns 422 when value is " do
+        patch :patch_update, params: {
+          id: 1,
+          Operations: [
+            {
+              op: "replace",
+              path: "displayName",
+              value: "Francis"
+            }
+          ]
+        }
+
+        expect(response.status).to eq 422
+        response_body = JSON.parse(response.body)
+        expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
+      end
+
+      it "returns 422 when value is missing" do
+        patch :patch_update, params: {
+          id: 1,
+          Operations: [
+            {
+              op: "replace"
+            }
+          ]
+        }
+
+        expect(response.status).to eq 422
+        response_body = JSON.parse(response.body)
+        expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
+      end
+
+      it "returns 422 operations key is missing" do
+        patch :patch_update, params: {
+          id: 1,
+          Foobars: [
+            {
+              op: "replace"
+            }
+          ]
+        }
+
+        expect(response.status).to eq 422
+        response_body = JSON.parse(response.body)
+        expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
+      end
     end
   end
 
