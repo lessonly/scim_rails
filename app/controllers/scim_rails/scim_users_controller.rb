@@ -126,9 +126,23 @@ module ScimRails
     end
 
     def patch_active_param
-      active = params.dig("Operations", 0, "value", "active")
-      raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if active.nil?
-      active
+      handle_invalid = lambda do
+        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest
+      end
+
+      operations = params["Operations"] || {}
+
+      valid_operation = operations.find(handle_invalid) do |operation|
+        valid_patch_operation?(operation)
+      end
+
+      valid_operation.dig("value", "active")
+    end
+
+    def valid_patch_operation?(operation)
+      operation["op"] == "replace" &&
+        operation["value"] &&
+        operation["value"]["active"]
     end
   end
 end
