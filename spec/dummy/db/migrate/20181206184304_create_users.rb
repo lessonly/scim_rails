@@ -5,6 +5,7 @@ class CreateUsers < ActiveRecord::Migration
       t.string :last_name, null: false
       t.string :email, null: false
       t.boolean :random_attribute, default: false
+      t.string :test_attribute
 
       t.integer :company_id
 

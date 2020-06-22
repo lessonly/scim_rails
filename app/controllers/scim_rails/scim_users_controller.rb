@@ -82,13 +82,14 @@ module ScimRails
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
 
       params["Operations"].each do |operation|
-        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"] != "replace"
+        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest unless ["Replace", "replace"].include?(operation["op"])
 
-        changed_attributes = permitted_params(operation["value"])
+        path_params = (operation.key?("path")) ? process_path(operation) : nil
+        changed_attributes = permitted_params(path_params || operation["value"])
 
         user.update!(changed_attributes.compact)
 
-        active_param = operation.dig("value", "active")
+        active_param = (operation.key?("path")) ? path_params&.dig(:active) : operation.dig("value", "active")
         status = patch_status(active_param)
         
         next if status.nil?
@@ -115,11 +116,29 @@ module ScimRails
 
     private
 
+    def process_path(operation)
+      keys = operation["path"].split('.').map { |key| key.to_sym }
+
+      parsed_path = Hash.new
+      key_chain = Array.new
+
+      keys.each do |key|
+        if key_chain.empty?
+          parsed_path&.store(key, (key == keys.last) ? operation["value"] : {})
+        else
+          parsed_path.dig(*key_chain)&.store(key, (key == keys.last) ? operation["value"] : {})
+        end
+
+        key_chain << key
+      end
+
+      parsed_path
+    end
+
     def permitted_params(parameters)
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = parameters.dig(*path_for(attribute))
       end.merge(ScimRails.config.custom_user_attributes)
-      
     end
 
     def update_status(user)

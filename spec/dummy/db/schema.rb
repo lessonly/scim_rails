@@ -1,4 +1,3 @@
-# encoding: UTF-8
 # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
@@ -36,16 +35,16 @@ ActiveRecord::Schema.define(version: 20200408164220) do
     t.integer  "group_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["group_id"], name: "index_groups_users_on_group_id"
+    t.index ["user_id"], name: "index_groups_users_on_user_id"
   end
-
-  add_index "groups_users", ["group_id"], name: "index_groups_users_on_group_id"
-  add_index "groups_users", ["user_id"], name: "index_groups_users_on_user_id"
 
   create_table "users", force: :cascade do |t|
     t.string   "first_name",                       null: false
     t.string   "last_name",                        null: false
     t.string   "email",                            null: false
     t.boolean  "random_attribute", default: false
+    t.string   "test_attribute"
     t.integer  "company_id"
     t.datetime "archived_at"
     t.datetime "created_at",                       null: false
