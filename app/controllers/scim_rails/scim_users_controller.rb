@@ -116,6 +116,25 @@ module ScimRails
 
     private
 
+    # `process_path` is a method that parses the string in the "path"
+    # key of a PATCH operation. Together with the "value" key, it
+    # converts it into a Hash that can be used in the `permitted_params`
+    # method to help update the attributes of a User.
+    #
+    # Example: given the following operation:
+    #   operation = {
+    #     'op': 'Replace',
+    #     'path': 'name.givenName',
+    #     'value': 'Grayson'
+    #   }
+    # calling `process_path(operation)` will return the Hash:
+    #   {
+    #     name: {
+    #       givenName: 'Grayson'
+    #     }
+    #   }
+    # which can easily be processed by `permitted_params` which will get
+    # the attributes that will be updated by the PATCH request
     def process_path(operation)
       keys = operation["path"].split('.').map { |key| key.to_sym }
 
