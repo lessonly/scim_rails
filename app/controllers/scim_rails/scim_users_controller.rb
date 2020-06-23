@@ -140,11 +140,11 @@ module ScimRails
 
       keys.each_with_index.reduce({}) do |acc, (key, index)|
         value = key == keys.last ? operation["value"] : {}
-        
+
         if index.zero?
           acc.store(key, value)
         else
-         key_path = keys.slice(0..(index - 1)) # Get the path except for the current key
+         key_path = keys.slice(0..(index - 1))
          acc.dig(*key_path)&.store(key, value)
         end
 
