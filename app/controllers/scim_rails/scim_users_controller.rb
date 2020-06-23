@@ -82,14 +82,14 @@ module ScimRails
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
 
       params["Operations"].each do |operation|
-        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest unless ["Replace", "replace"].include?(operation["op"])
+        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"].downcase != "replace"
 
-        path_params = (operation.key?("path")) ? process_path(operation) : nil
+        path_params = extract_path_params(operation)
         changed_attributes = permitted_params(path_params || operation["value"])
 
         user.update!(changed_attributes.compact)
 
-        active_param = (operation.key?("path")) ? path_params&.dig(:active) : operation.dig("value", "active")
+        active_param = extract_active_param(operation, path_params)
         status = patch_status(active_param)
         
         next if status.nil?
@@ -138,8 +138,8 @@ module ScimRails
     def process_path(operation)
       keys = operation["path"].split('.').map { |key| key.to_sym }
 
-      parsed_path = Hash.new
-      key_chain = Array.new
+      parsed_path = {}
+      key_chain = []
 
       keys.each do |key|
         if key_chain.empty?
@@ -152,6 +152,14 @@ module ScimRails
       end
 
       parsed_path
+    end
+
+    def extract_path_params(operation)
+      operation.key?("path") ? process_path(operation) : nil
+    end
+
+    def extract_active_param(operation, path_params)
+      operation.key?("path") ? path_params&.dig(:active) : operation.dig("value", "active")
     end
 
     def permitted_params(parameters)
