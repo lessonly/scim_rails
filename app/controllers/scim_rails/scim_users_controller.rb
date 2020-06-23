@@ -82,13 +82,14 @@ module ScimRails
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
 
       params["Operations"].each do |operation|
-        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"] != "replace"
+        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"].downcase != "replace"
 
-        changed_attributes = permitted_params(operation["value"])
+        path_params = extract_path_params(operation)
+        changed_attributes = permitted_params(path_params || operation["value"])
 
         user.update!(changed_attributes.compact)
 
-        active_param = operation.dig("value", "active")
+        active_param = extract_active_param(operation, path_params)
         status = patch_status(active_param)
         
         next if status.nil?
@@ -115,11 +116,54 @@ module ScimRails
 
     private
 
+    # `process_path` is a method that parses the string in the "path"
+    # key of a PATCH operation. Together with the "value" key, it
+    # converts it into a Hash that can be used in the `permitted_params`
+    # method to help update the attributes of a User.
+    #
+    # Example: given the following operation:
+    #   operation = {
+    #     'op': 'Replace',
+    #     'path': 'name.givenName',
+    #     'value': 'Grayson'
+    #   }
+    # calling `process_path(operation)` will return the Hash:
+    #   {
+    #     name: {
+    #       givenName: 'Grayson'
+    #     }
+    #   }
+    # which can easily be processed by `permitted_params` which will get
+    # the attributes that will be updated by the PATCH request
+    def process_path(operation)
+      keys = operation["path"].split('.').map { |key| key.to_sym }
+
+      keys.each_with_index.reduce({}) do |acc, (key, index)|
+        value = key == keys.last ? operation["value"] : {}
+
+        if index.zero?
+          acc.store(key, value)
+        else
+          key_path = keys.slice(0..(index - 1))
+          acc.dig(*key_path)&.store(key, value)
+        end
+
+        acc
+      end
+    end
+
+    def extract_path_params(operation)
+      operation.key?("path") ? process_path(operation) : nil
+    end
+
+    def extract_active_param(operation, path_params)
+      operation.key?("path") ? path_params&.dig(:active) : operation.dig("value", "active")
+    end
+
     def permitted_params(parameters)
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = parameters.dig(*path_for(attribute))
       end.merge(ScimRails.config.custom_user_attributes)
-      
     end
 
     def update_status(user)

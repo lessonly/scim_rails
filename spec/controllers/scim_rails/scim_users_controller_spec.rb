@@ -650,6 +650,35 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           expect(company_user.last_name).to eq(final_family_name)
         end
       end
+
+      context "with azure requests" do
+        let(:new_test_attribute) { Faker::Games::Pokemon.move }
+        let(:new_name) { Faker::Name.name }
+
+        it "processes path field and updates attribute" do
+          patch :patch_update, params: azure_patch_params(id: 1, path: "testAttribute", value: new_test_attribute)
+
+          expect(company_user.test_attribute).to eq(new_test_attribute)
+        end
+
+        it "processes path with periods and updates attribute" do
+          patch :patch_update, params: azure_patch_params(id: 1, path: "name.givenName", value: new_name)
+
+          expect(company_user.first_name).to eq(new_name)
+        end
+
+        it "processes path and activates user" do
+          patch :patch_update, params: azure_patch_params(id: 1, path: "active", value: true)
+
+          expect(company_user.archived?).to eq(false)
+        end
+
+        it "processes path and deactivates user" do
+          patch :patch_update, params: azure_patch_params(id: 1, path: "active", value: false)
+
+          expect(company_user.archived?).to eq(true)
+        end
+      end
     end
   end
 
@@ -721,6 +750,19 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           value: {
             active: active
           }
+        }
+      ]
+    }
+  end
+
+  def azure_patch_params(id:, path:, value:)
+    {
+      id: id,
+      Operations: [
+        {
+          op: "Replace",
+          path: path,
+          value: value
         }
       ]
     }

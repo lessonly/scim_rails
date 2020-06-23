@@ -28,26 +28,28 @@ ScimRails.configure do |config|
   config.mutable_user_attributes = [
     :first_name,
     :last_name,
-    :email
+    :email,
+    :test_attribute,
   ]
 
   config.mutable_group_attributes = [
     :display_name,
     :email,
-    :members
+    :members,
   ]
 
   config.queryable_user_attributes = {
     userName: :email,
     givenName: :first_name,
     familyName: :last_name,
-    email: :email
+    email: :email,
+    testAttribute: :test_attribute,
   }
 
   config.queryable_group_attributes = {
     userName: :display_name,
     displayName: :display_name,
-    email: :email
+    email: :email,
   }
 
   config.mutable_user_attributes_schema = {
@@ -59,13 +61,14 @@ ScimRails.configure do |config|
       {
         value: :email
       }
-    ]
+    ],
+    testAttribute: :test_attribute,
   }
 
   config.mutable_group_attributes_schema = {
     displayName: :display_name,
     email: :email,
-    members: :members
+    members: :members,
   }
 
   config.user_schema = {
@@ -81,7 +84,8 @@ ScimRails.configure do |config|
         value: :email
       },
     ],
-    active: :unarchived?
+    testAttribute: :test_attribute,
+    active: :unarchived?,
   }
 
   config.group_schema = {
@@ -91,19 +95,19 @@ ScimRails.configure do |config|
     displayName: :display_name,
     email: :email,
     members: [],
-    active: :unarchived?
+    active: :unarchived?,
   }
 
   config.group_member_schema = {
-    value: :id
+    value: :id,
   }
 
-  config.before_scim_response = lambda do |body|
-    print "BEFORE SCIM RESPONSE #{body}"
-  end
+  # config.before_scim_response = lambda do |body|
+  #   print "BEFORE SCIM RESPONSE #{body}"
+  # end
 
-  config.after_scim_response = lambda do |object, status|
-    print "#{object} #{status}"
-  end
+  # config.after_scim_response = lambda do |object, status|
+  #   print "#{object} #{status}"
+  # end
 
 end
