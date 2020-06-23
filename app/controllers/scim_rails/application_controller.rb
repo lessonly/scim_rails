@@ -37,6 +37,50 @@ module ScimRails
     end
     
     # Shared stuff...
+
+    def extract_path_params(operation)
+      operation.key?("path") ? process_path(operation) : nil
+    end
+
+    def extract_active_param(operation, path_params)
+      operation.key?("path") ? path_params&.dig(:active) : operation.dig("value", "active")
+    end
+
+    # `process_path` is a method that parses the string in the "path"
+    # key of a PATCH operation. Together with the "value" key, it
+    # converts it into a Hash that can be used in the `permitted_params`
+    # method to help update the attributes of a User.
+    #
+    # Example: given the following operation:
+    #   operation = {
+    #     'op': 'Replace',
+    #     'path': 'name.givenName',
+    #     'value': 'Grayson'
+    #   }
+    # calling `process_path(operation)` will return the Hash:
+    #   {
+    #     name: {
+    #       givenName: 'Grayson'
+    #     }
+    #   }
+    # which can easily be processed by `permitted_params` which will get
+    # the attributes that will be updated by the PATCH request
+    def process_path(operation)
+      keys = operation["path"].split('.').map { |key| key.to_sym }
+
+      keys.each_with_index.reduce({}) do |acc, (key, index)|
+        value = key == keys.last ? operation["value"] : {}
+
+        if index.zero?
+          acc.store(key, value)
+        else
+          key_path = keys.slice(0..(index - 1))
+          acc.dig(*key_path)&.store(key, value)
+        end
+
+        acc
+      end
+    end
     
     # `path_for` is a recursive method used to find the "path" for
     # `.dig` to take when looking for a given attribute in the

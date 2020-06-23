@@ -549,6 +549,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         let(:updated_user_list) { updated_group.users }
         let(:updated_user_ids) { updated_user_list.map{ |user| user[:id] } }
 
+        let(:target_user_id) { user_list.first.id }
+
         let(:new_display_name) { Faker::Name.first_name }
         let(:new_email) { Faker::Internet.email }
 
@@ -626,14 +628,13 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         end
 
         context "when using 'remove' operation" do
-          let(:target_user_id) { user_list.first.id }
-
           it 'removes target users from group' do
             patch :patch_update, params: patch_remove_params(id: target_group.id, path: "members[value eq \"#{target_user_id}\"]"), as: :json
 
             expect(response.status).to eq(200)
             
             expect(updated_user_list.length).to eq(user_list_length - 1)
+            expect(updated_user_ids).to_not include(target_user_id)
           end
 
           it 'does not remove if values not found' do
@@ -687,6 +688,71 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
           expect(updated_user_list.length).to eq(1)
           expect(updated_user_ids).to include(new_user_id)
         end
+
+        context "with azure requests" do
+          context "when Replace operation" do
+            let(:new_name) { Faker::Name.name }
+
+            it "processes path and updates attribute" do
+              patch :patch_update, params: azure_patch_params(id: target_group.id, operation: "Replace", path: "displayName", value: new_name)
+
+              expect(updated_group.display_name).to eq(new_name)
+            end
+
+            it "processes path and activates group" do
+              patch :patch_update, params: azure_patch_params(id: target_group.id, operation: "Replace", path: "active", value: true)
+
+              expect(updated_group.active?).to eq(true)
+            end
+
+            it "processes path and deactivates group" do
+              patch :patch_update, params: azure_patch_params(id: target_group.id, operation: "Replace", path: "active", value: false)
+
+              expect(updated_group.active?).to eq(false)
+            end
+          end
+
+          context "when Add operation" do
+            it "adds user to group" do
+              expect(company.groups.first.users).to_not include(new_user)
+
+              patch :patch_update, params: azure_patch_params(
+                id: target_group.id,
+                operation: "Add",
+                path: "members",
+                value: [{ value: new_user.id }]
+              )
+
+              expect(company.groups.first.users).to include(new_user)
+            end
+          end
+
+          context "when Remove operation" do
+            it "removes user from group" do
+              expect(company.groups.first.users).to include(company.users.first)
+              
+              patch :patch_update, params: azure_patch_params(
+                id: target_group.id,
+                operation: "Remove",
+                path: "members",
+                value: [{ value: target_user_id }]
+              )
+
+              expect(company.groups.first.users).to_not include(company.users.first)
+            end
+
+            it "returns 404 if id is invalid" do
+              patch :patch_update, params: azure_patch_params(
+                id: target_group.id,
+                operation: "Remove",
+                path: "members",
+                value: [{ value: "hamburger" }]
+              )
+
+              expect(response.status).to eq(404)
+            end
+          end
+        end
       end
 
       context "without valid credentials" do
@@ -702,7 +768,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         end
 
         it 'returns 404 when adding nonexistent user' do
-          patch :patch_update, params: patch_add_params(id: target_group, value: [ { value: "N/A" } ]), as: :json
+          patch :patch_update, params: patch_add_params(id: target_group.id, value: [ { value: "N/A" } ]), as: :json
 
           expect(response.status).to eq(404)
         end
@@ -714,12 +780,6 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         end
 
         context "with unprocessable paths" do
-          it "returns 422 for 'replace'" do
-            patch :patch_update, params: patch_replace_params(id: target_group.id, path: "unprocessable_path"), as: :json
-
-            expect(response.status).to eq(422)
-          end
-
           it "returns 422 for 'remove'" do
             patch :patch_update, params: patch_remove_params(id: target_group.id, path: "unprocessable_path"), as: :json
 
@@ -839,8 +899,21 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
           op: "replace",
           path: path,
           value: value
+        }.compact
+      ]
+    }
+  end
+
+  def azure_patch_params(id:, operation:, path:, value:)
+    {
+      id: id,
+      Operations: [
+        {
+          op: operation,
+          path: path,
+          value: value,
         }
       ]
-    }.compact
+    }
   end
 end
