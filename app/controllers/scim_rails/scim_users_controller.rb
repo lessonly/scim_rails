@@ -144,8 +144,8 @@ module ScimRails
         if index.zero?
           acc.store(key, value)
         else
-         key_path = keys.slice(0..(index - 1))
-         acc.dig(*key_path)&.store(key, value)
+          key_path = keys.slice(0..(index - 1))
+          acc.dig(*key_path)&.store(key, value)
         end
 
         acc
