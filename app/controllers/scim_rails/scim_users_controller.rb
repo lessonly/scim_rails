@@ -138,20 +138,18 @@ module ScimRails
     def process_path(operation)
       keys = operation["path"].split('.').map { |key| key.to_sym }
 
-      parsed_path = {}
-      key_chain = []
-
-      keys.each do |key|
-        if key_chain.empty?
-          parsed_path&.store(key, (key == keys.last) ? operation["value"] : {})
+      keys.each_with_index.reduce({}) do |acc, (key, index)|
+        value = key == keys.last ? operation["value"] : {}
+        
+        if index.zero?
+          acc.store(key, value)
         else
-          parsed_path.dig(*key_chain)&.store(key, (key == keys.last) ? operation["value"] : {})
+         key_path = keys.slice(0..(index - 1)) # Get the path except for the current key
+         acc.dig(*key_path)&.store(key, value)
         end
 
-        key_chain << key
+        acc
       end
-
-      parsed_path
     end
 
     def extract_path_params(operation)
