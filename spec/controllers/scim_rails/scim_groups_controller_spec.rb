@@ -689,67 +689,96 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
           expect(updated_user_ids).to include(new_user_id)
         end
 
-        context "with azure requests" do
+        context "with Azure requests" do
+          let(:params) do
+            {
+              id: target_group.id,
+              Operations: [
+                {
+                  op: patch_operation,
+                  path: patch_path,
+                  value: patch_value,
+                }
+              ]
+            }
+          end
+
+          before { patch :patch_update, params: params }
+
           context "when Replace operation" do
-            let(:new_name) { Faker::Name.name }
+            let(:patch_operation) { "Replace" }
 
-            it "processes path and updates attribute" do
-              patch :patch_update, params: azure_patch_params(id: target_group.id, operation: "Replace", path: "displayName", value: new_name)
+            context "when changing attributes" do
+              let(:patch_path) { "displayName" }
+              let(:patch_value) { Faker::Name.name }
 
-              expect(updated_group.display_name).to eq(new_name)
+              it "processes path and updates name" do
+                expect(updated_group.display_name).to eq(patch_value)
+              end
             end
 
-            it "processes path and activates group" do
-              patch :patch_update, params: azure_patch_params(id: target_group.id, operation: "Replace", path: "active", value: true)
+            context "with active param" do
+              let(:patch_path) { "active" }
 
-              expect(updated_group.active?).to eq(true)
-            end
+              context "when activating" do
+                let(:patch_value) { true }
 
-            it "processes path and deactivates group" do
-              patch :patch_update, params: azure_patch_params(id: target_group.id, operation: "Replace", path: "active", value: false)
+                it "processes path and activates group" do
+                  expect(updated_group.active?).to eq(true)
+                end
+              end
 
-              expect(updated_group.active?).to eq(false)
-            end
-          end
+              context "when deactivating" do
+                let(:patch_value) { false }
 
-          context "when Add operation" do
-            it "adds user to group" do
-              expect(company.groups.first.users).to_not include(new_user)
-
-              patch :patch_update, params: azure_patch_params(
-                id: target_group.id,
-                operation: "Add",
-                path: "members",
-                value: [{ value: new_user.id }]
-              )
-
-              expect(company.groups.first.users).to include(new_user)
+                it "processes path and activates group" do
+                  expect(updated_group.active?).to eq(false)
+                end
+              end
             end
           end
 
-          context "when Remove operation" do
-            it "removes user from group" do
-              expect(company.groups.first.users).to include(company.users.first)
-              
-              patch :patch_update, params: azure_patch_params(
-                id: target_group.id,
-                operation: "Remove",
-                path: "members",
-                value: [{ value: target_user_id }]
-              )
+          context "when updating group membership" do
+            let(:patch_path) { "members" }
 
-              expect(company.groups.first.users).to_not include(company.users.first)
+            context "with Add operation" do
+              let(:patch_operation) { "Add" }
+
+              context "with valid user id" do
+                let(:patch_value) { [{ value: new_user.id }] }
+
+                it "adds member to group" do
+                  expect(company.groups.first.users).to include(new_user)
+                end
+              end
+
+              context "with invalid user id" do
+                let(:patch_value) { [{ value: "hamburger" }] }
+
+                it "returns 404" do
+                  expect(response.status).to eq(404)
+                end
+              end
             end
 
-            it "returns 404 if id is invalid" do
-              patch :patch_update, params: azure_patch_params(
-                id: target_group.id,
-                operation: "Remove",
-                path: "members",
-                value: [{ value: "hamburger" }]
-              )
+            context "with Remove operation" do
+              let(:patch_operation) { "Remove" }
 
-              expect(response.status).to eq(404)
+              context "when valid user id" do
+                let(:patch_value) { [{ value: target_user_id }] }
+
+                it "removes member from group" do
+                  expect(company.groups.first.users).to_not include(company.users.first)
+                end
+              end
+
+              context "when invalid user id" do
+                let(:patch_value) { [{ value: "hamburger" }] }
+
+                it "returns 404" do
+                  expect(response.status).to eq(404)
+                end
+              end
             end
           end
         end
@@ -900,19 +929,6 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
           path: path,
           value: value
         }.compact
-      ]
-    }
-  end
-
-  def azure_patch_params(id:, operation:, path:, value:)
-    {
-      id: id,
-      Operations: [
-        {
-          op: operation,
-          path: path,
-          value: value,
-        }
       ]
     }
   end
