@@ -196,16 +196,15 @@ module ScimRails
     def patch_remove(group, operation)
       path_string = operation["path"]
 
-      if path_string == "members"
-        if operation.key?("value")
-          member_error_check(operation["value"])
+      if path_string == "members" && operation.key?("value")
+        member_error_check(operation["value"])
 
-          member_ids = operation["value"].map{ |member| member["value"] }
+        member_ids = operation["value"].map{ |member| member["value"] }
 
-          remove_members(group, member_ids)
-          return
-        end
-
+        remove_members(group, member_ids)
+        return
+        
+      elsif path_string == "members"
         group.public_send(ScimRails.config.scim_group_member_scope).delete_all
         return
       end
