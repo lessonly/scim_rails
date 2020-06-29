@@ -87,7 +87,7 @@ module ScimRails
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
 
       params["Operations"].each do |operation|
-        case operation["op"]
+        case operation["op"].downcase
         when "replace"
           patch_replace(group, operation)
         when "add"
@@ -132,6 +132,12 @@ module ScimRails
       group.public_send(ScimRails.config.scim_group_member_scope) << new_members if new_members.present?
     end
 
+    def remove_members(group, member_ids)
+      target_members = group.public_send(ScimRails.config.scim_group_member_scope).find(member_ids)
+
+      group.public_send(ScimRails.config.scim_group_member_scope).delete(target_members)
+    end
+
     def put_error_check
       member_error_check(params["members"])
         
@@ -157,9 +163,11 @@ module ScimRails
     end
 
     def patch_replace_attributes(group, operation)
-      group_attributes = permitted_group_params(operation["value"])
+      path_params = extract_path_params(operation)
 
-      active_param = operation.dig("value", "active")
+      group_attributes = permitted_group_params(path_params || operation["value"])
+
+      active_param = extract_active_param(operation, path_params)
       status = patch_group_status(active_param)
 
       group.update!(group_attributes.compact)
@@ -170,19 +178,16 @@ module ScimRails
     end
 
     def patch_replace(group, operation)
-      case operation["path"]
-      when "members"
+      if operation["path"] == "members"
         patch_replace_members(group, operation)
-
-      when nil
-        patch_replace_attributes(group, operation)
-
       else
-        raise ScimRails::ExceptionHandler::BadPatchPath
+        patch_replace_attributes(group, operation)
       end
     end
 
     def patch_add(group, operation)
+      raise ScimRails::ExceptionHandler::BadPatchPath unless ["members", nil].include?(operation["path"])
+
       member_error_check(operation["value"])
 
       member_ids = operation["value"].map{ |member| member["value"] }
@@ -193,7 +198,15 @@ module ScimRails
     def patch_remove(group, operation)
       path_string = operation["path"]
 
-      if path_string == "members"
+      if path_string == "members" && operation.key?("value")
+        member_error_check(operation["value"])
+
+        member_ids = operation["value"].map{ |member| member["value"] }
+
+        remove_members(group, member_ids)
+        return
+        
+      elsif path_string == "members"
         group.public_send(ScimRails.config.scim_group_member_scope).delete_all
         return
       end
