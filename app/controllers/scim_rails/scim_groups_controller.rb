@@ -186,6 +186,8 @@ module ScimRails
     end
 
     def patch_add(group, operation)
+      raise ScimRails::ExceptionHandler::BadPatchPath unless ["members", nil].include?(operation["path"])
+
       member_error_check(operation["value"])
 
       member_ids = operation["value"].map{ |member| member["value"] }

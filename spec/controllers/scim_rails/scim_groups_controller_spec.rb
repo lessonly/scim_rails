@@ -534,6 +534,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
     context "when authorized" do
       before :each do
         http_login(company)
+        patch :patch_update, params: params, as: :json
       end
 
       let(:user_list_length) { 3 }
@@ -541,121 +542,263 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       let!(:user_list) { create_list(:user, user_list_length, company: company) }
       let!(:target_group) { create(:group, users: user_list, company: company) }
 
-      context "with valid credentials" do
-        let!(:new_user) { create(:user, company: company) }
-        let(:new_user_id) { new_user.id }
+      let(:updated_group) { company.groups.first }
+      let(:updated_user_list) { updated_group.users }
+      let(:updated_user_ids) { updated_user_list.map{ |user| user[:id] } }
 
-        let(:updated_group) { company.groups.first }
-        let(:updated_user_list) { updated_group.users }
-        let(:updated_user_ids) { updated_user_list.map{ |user| user[:id] } }
+      let!(:new_user) { create(:user, company: company) }
+
+      let(:params) do
+        {
+          id: patch_id,
+          Operations: [
+            {
+              op: patch_operation,
+              path: patch_path,
+              value: patch_value
+            }.compact
+          ]
+        }
+      end
+
+      let(:patch_id) { target_group.id }
+      let(:patch_operation) { 'placeholder' }
+      let(:patch_path) { nil }
+      let(:patch_value) { nil }
+
+      it 'returns scim+json content type' do
+        expect(response.content_type).to eq("application/scim+json")
+      end
+
+      context "when group id is invalid" do
+        let(:patch_id) { "invalid_id" }
+
+        it "returns 404 not found" do
+          expect(response.status).to eq(404)
+        end
+      end
+
+      context "when using 'replace' operation" do
+        let(:patch_operation) { 'replace' }
+
+        let(:replacement_list_length) { 2 }
+        let!(:replacement_users) { create_list(:user, replacement_list_length, company: company) }
+        let(:replacement_ids) { replacement_users.map{ |user| user[:id] } }
+
+        context "when updating non-member attributes" do
+          after { expect(response.status).to eq(200) }
+
+          context "with active param not in use" do
+            subject { updated_group.display_name }
+
+            context "when path not used" do
+              let(:new_name) { Faker::Name.name }
+              let(:patch_value) { { displayName: new_name } }
+
+              it { is_expected.to eq(new_name) }
+            end
+
+            context "when path in use" do
+              let(:patch_path) { "displayName" }
+              let(:patch_value) { Faker::Name.name }
+
+              it { is_expected.to eq(patch_value) }
+            end
+          end
+
+          context "with active param in use" do
+            subject { updated_group.active? }
+
+            context "when path not used" do
+              context "with active param set to true" do
+                let(:patch_value) { { active: true } }
+                it { is_expected.to eq(true) }
+              end
+
+              context "with active param set to false" do
+                let(:patch_value) { { active: false } }
+                it { is_expected.to eq(false) }
+              end
+            end
+
+            context "when path in use" do
+              let(:patch_path) { "active" }
+
+              context "with active param set to true" do
+                let(:patch_value) { true }
+                it { is_expected.to eq(true) }
+              end
+
+              context "with active param set to false" do
+                let(:patch_value) { false }
+                it { is_expected.to eq(false) }
+              end
+            end
+          end
+        end
+
+        context "when updating member attributes" do
+          let(:patch_path) { "members" }
+
+          context "with non-empty member list" do
+            let(:patch_value) { [ { value: replacement_ids[0] }, { value: replacement_ids[1] } ] }
+
+            it "replaces the group's member list" do
+              expect(response.status).to eq(200)
+              expect(updated_user_list.length).to eq(replacement_list_length)
+              expect(updated_user_ids).to match_array(replacement_ids)
+            end
+          end
+
+          context "with empty member list" do
+            let(:patch_value) { [] }
+
+            it "clears the group's member list" do
+              expect(response.status).to eq(200)
+              expect(updated_user_list).to be_empty
+            end
+          end
+        end
+      end
+
+      context "when using 'add' operation" do
+        let(:patch_operation) { 'add' }
+
+        context "when using path" do
+          context "when path set to 'members'" do
+            let(:patch_path) { "members" }
+
+            context "with valid member id" do
+              let(:patch_value) { [ { value: new_user.id } ] }
+
+              it "adds the user to the group" do
+                expect(response.status).to eq(200)
+                expect(updated_user_list.length).to eq(user_list_length + 1)
+                expect(updated_user_ids).to include(new_user.id)
+              end
+            end
+
+            context "with invalid member id" do
+              let(:patch_value) { [ { value: "hamburger" } ] }
+
+              it "returns 404 not found" do
+                expect(response.status).to eq(404)
+              end
+            end
+          end
+
+          context "when path not set to 'members'" do
+            let(:patch_path) { "cheeseburger" }
+
+            it "returns 422 unprocessable" do
+              expect(response.status).to eq(422)
+            end
+          end
+        end
+
+        context "when not using path" do
+          context "when member list is unique" do
+            let(:patch_value) { [ { value: new_user.id } ] }
+
+            it "adds the user to the group" do
+              expect(response.status).to eq(200)
+              expect(updated_user_list.length).to eq(user_list_length + 1)
+              expect(updated_user_ids).to include(new_user.id)
+            end
+          end
+
+          context "when member list contains duplicates" do
+            let(:patch_value) { [ { value: new_user.id }, { value: new_user.id } ] }
+
+            it "only adds one of the users" do
+              expect(response.status).to eq(200)
+              expect(updated_user_list.length).to eq(user_list_length + 1)
+              expect(updated_user_ids).to include(new_user.id)
+            end
+          end
+        end
+      end
+
+      context "when using 'remove' operation" do
+        let(:patch_operation) { 'remove' }
 
         let(:target_user_id) { user_list.first.id }
 
+        context "when using only path" do
+          context "with path containing valid member id" do
+            let(:patch_path) { "members[value eq \"#{target_user_id}\"]" }
+
+            it "removes member from group" do
+              expect(response.status).to eq(200)
+              expect(updated_user_list.length).to eq(user_list_length - 1)
+              expect(updated_user_ids).to_not include(target_user_id)
+            end
+          end
+
+          context "with path containing invalid member id" do
+            let(:patch_path) { "members[value eq \"unknown\"]" }
+
+            it "does not remove anything" do
+              expect(response.status).to eq(200)
+              expect(updated_user_list.length).to eq(user_list_length)
+            end
+          end
+
+          context "without member filter" do
+            let(:patch_path) { "members" }
+
+            it "clears the group's members" do
+              expect(response.status).to eq(200)
+              expect(updated_user_list).to be_empty
+            end
+          end
+
+          context "with unprocessable path" do
+            let(:patch_path) { "unprocessable_path" }
+
+            it "returns 422 unprocessable" do
+              expect(response.status).to eq(422)
+            end
+          end
+
+          context "with bad filter" do
+            let(:patch_path) { "members[value eq]" }
+
+            it "returns 422 unprocessable" do
+              expect(response.status).to eq(422)
+            end
+          end
+        end
+
+        context "when using path and value" do
+          let(:patch_path) { "members" }
+
+          context "when given member id is valid" do
+            let(:patch_value) { [{ value: target_user_id }] }
+
+            it "removes member from group" do
+              expect(response.status).to eq(200)
+              expect(updated_user_list.length).to eq(user_list_length - 1)
+              expect(company.groups.first.users).to_not include(target_user_id)
+            end
+          end
+
+          context "when given member id is invalid" do
+            let(:patch_value) { [{ value: "donut" }] }
+
+            it "returns 404 not found" do
+              expect(response.status).to eq(404)
+            end
+          end
+        end
+      end
+
+      context "when using multiple operations" do
         let(:new_display_name) { Faker::Name.first_name }
         let(:new_email) { Faker::Internet.email }
 
-        it 'returns scim+json content type' do
-          patch :patch_update, params: {
-            id: target_group.id,
-            Operations: []
-          }, as: :json
-
-          expect(response.content_type).to eq("application/scim+json")
-        end
-
-        context "when using 'replace' operation" do
-          let(:replacement_list_length) { 2 }
-          let!(:replacement_users) { create_list(:user, replacement_list_length, company: company) }
-          let(:replacement_ids) { replacement_users.map{ |user| user[:id] } }
-
-          it 'updates group attributes' do
-            patch :patch_update, params: patch_replace_params(id: target_group.id, value: { displayName: new_display_name }), as: :json
-  
-            expect(response.status).to eq(200)
-  
-            expect(updated_group.display_name).to eq(new_display_name)
-          end
-  
-          it 'reprovisions a group' do
-            patch :patch_update, params: patch_replace_params(id: target_group.id, value: { active: true }), as: :json
-  
-            expect(response.status).to eq(200)
-  
-            expect(updated_group.active?).to eq(true)
-          end
-  
-          it 'deprovisions a group' do
-            patch :patch_update, params: patch_replace_params(id: target_group.id, value: { active: false }), as: :json
-  
-            expect(response.status).to eq(200)
-  
-            expect(updated_group.active?).to eq(false)
-          end
-
-          it "replaces a group's user list with another" do
-            patch :patch_update, params: patch_replace_params(id: target_group.id, path: "members", value: [ { value: replacement_ids[0] }, { value: replacement_ids[1] } ]), as: :json
-
-            expect(response.status).to eq(200)
-
-            expect(updated_user_list.length).to eq(replacement_list_length)
-            expect(updated_user_ids).to match_array(replacement_ids)
-          end
-
-          it "replaces a group's user list to be empty" do
-            patch :patch_update, params: patch_replace_params(id: target_group.id, path: "members", value: []), as: :json
-
-            expect(response.status).to eq(200)
-
-            expect(updated_user_list).to be_empty
-          end
-        end
-
-        context "when using 'add' operation" do
-          it 'adds user to group' do
-            patch :patch_update, params: patch_add_params(id: target_group.id, value: [ { value: new_user_id } ]), as: :json
-
-            expect(response.status).to eq(200)
-
-            expect(updated_user_list.length).to eq(user_list_length + 1)
-            expect(updated_user_ids).to include(new_user_id)
-          end
-
-          it 'will not add same user to group more than once' do
-            patch :patch_update, params: patch_add_params(id: target_group.id, value: [ { value: new_user_id }, { value: new_user_id } ]), as: :json
-
-            expect(updated_user_list.length).to eq(user_list_length + 1)
-          end
-        end
-
-        context "when using 'remove' operation" do
-          it 'removes target users from group' do
-            patch :patch_update, params: patch_remove_params(id: target_group.id, path: "members[value eq \"#{target_user_id}\"]"), as: :json
-
-            expect(response.status).to eq(200)
-            
-            expect(updated_user_list.length).to eq(user_list_length - 1)
-            expect(updated_user_ids).to_not include(target_user_id)
-          end
-
-          it 'does not remove if values not found' do
-            patch :patch_update, params: patch_remove_params(id: target_group.id, path: "members[value eq \"unknown\"]"), as: :json
-
-            expect(response.status).to eq(200)
-
-            expect(updated_user_list.length).to eq(user_list_length)
-          end
-
-          it 'removes all users if no member filter' do
-            patch :patch_update, params: patch_remove_params(id: target_group.id, path: "members"), as: :json
-
-            expect(response.status).to eq(200)
-
-            expect(updated_user_list).to be_empty
-          end
-        end
-
-        it "works with more than one operation" do
-          patch :patch_update, params: {
+        let(:params) do
+          {
             id: target_group.id,
             Operations: [
               {
@@ -673,156 +816,22 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
                 op: "add",
                 value: [
                   {
-                    value: new_user_id
+                    value: new_user.id
                   }
                 ]
               }
             ]
-          }, as: :json
+          }
+        end
 
+        it "successfully performs all three" do
           expect(response.status).to eq(200)
-
           expect(updated_group.display_name).to eq(new_display_name)
           expect(updated_group.email).to eq(new_email)
-
           expect(updated_user_list.length).to eq(1)
-          expect(updated_user_ids).to include(new_user_id)
-        end
-
-        context "with Azure requests" do
-          let(:params) do
-            {
-              id: target_group.id,
-              Operations: [
-                {
-                  op: patch_operation,
-                  path: patch_path,
-                  value: patch_value,
-                }
-              ]
-            }
-          end
-
-          before { patch :patch_update, params: params }
-
-          context "when Replace operation" do
-            let(:patch_operation) { "Replace" }
-
-            context "when changing attributes" do
-              let(:patch_path) { "displayName" }
-              let(:patch_value) { Faker::Name.name }
-
-              it "processes path and updates name" do
-                expect(updated_group.display_name).to eq(patch_value)
-              end
-            end
-
-            context "with active param" do
-              let(:patch_path) { "active" }
-
-              context "when activating" do
-                let(:patch_value) { true }
-
-                it "processes path and activates group" do
-                  expect(updated_group.active?).to eq(true)
-                end
-              end
-
-              context "when deactivating" do
-                let(:patch_value) { false }
-
-                it "processes path and activates group" do
-                  expect(updated_group.active?).to eq(false)
-                end
-              end
-            end
-          end
-
-          context "when updating group membership" do
-            let(:patch_path) { "members" }
-
-            context "with Add operation" do
-              let(:patch_operation) { "Add" }
-
-              context "with valid user id" do
-                let(:patch_value) { [{ value: new_user.id }] }
-
-                it "adds member to group" do
-                  expect(company.groups.first.users).to include(new_user)
-                end
-              end
-
-              context "with invalid user id" do
-                let(:patch_value) { [{ value: "hamburger" }] }
-
-                it "returns 404" do
-                  expect(response.status).to eq(404)
-                end
-              end
-            end
-
-            context "with Remove operation" do
-              let(:patch_operation) { "Remove" }
-
-              context "when valid user id" do
-                let(:patch_value) { [{ value: target_user_id }] }
-
-                it "removes member from group" do
-                  expect(company.groups.first.users).to_not include(company.users.first)
-                end
-              end
-
-              context "when invalid user id" do
-                let(:patch_value) { [{ value: "hamburger" }] }
-
-                it "returns 404" do
-                  expect(response.status).to eq(404)
-                end
-              end
-            end
-          end
+          expect(updated_user_ids).to include(new_user.id)
         end
       end
-
-      context "without valid credentials" do
-        let(:invalid_id) { "invalid_id" }
-
-        it "returns 404 if for id not belonging to group" do
-          patch :patch_update, params: {
-            id: invalid_id,
-            Operations: []
-          }, as: :json
-
-          expect(response.status).to eq(404)
-        end
-
-        it 'returns 404 when adding nonexistent user' do
-          patch :patch_update, params: patch_add_params(id: target_group.id, value: [ { value: "N/A" } ]), as: :json
-
-          expect(response.status).to eq(404)
-        end
-
-        it "returns 400 for invalid active param" do
-          patch :patch_update, params: patch_replace_params(id: target_group.id, value: { active: "hotdog" }), as: :json
-
-          expect(response.status).to eq(400)
-        end
-
-        context "with unprocessable paths" do
-          it "returns 422 for 'remove'" do
-            patch :patch_update, params: patch_remove_params(id: target_group.id, path: "unprocessable_path"), as: :json
-
-            expect(response.status).to eq(422)
-          end
-
-          it "returns 422 for bad filter" do
-            patch :patch_update, params: patch_remove_params(id: target_group.id, path: "members[value eq]"), as: :json
-
-            expect(response.status).to eq(422)
-          end
-        end
-      end
-
     end
 
     describe "delete" do
@@ -893,43 +902,6 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       email: email,
       members: members,
       active: active
-    }
-  end
-
-  def patch_remove_params(id:, path:)
-    {
-      id: id,
-      Operations: [
-        {
-          op: "remove",
-          path: path
-        }
-      ]
-    }
-  end
-
-  def patch_add_params(id:, value:)
-    {
-      id: id,
-      Operations: [
-        {
-          op: "add",
-          value: value
-        }
-      ]
-    }
-  end
-
-  def patch_replace_params(id:, path: nil, value: nil)
-    {
-      id: id,
-      Operations: [
-        {
-          op: "replace",
-          path: path,
-          value: value
-        }.compact
-      ]
     }
   end
 end
