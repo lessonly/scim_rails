@@ -10,6 +10,6 @@ gemspec
 # Git. Remember to move these dependencies to your gemspec before releasing
 # your gem to rubygems.org.
 
-ruby '~> 2.4'
+ruby '~> 2.6.2'
 
 gem 'pry', group: [:development, :test]
