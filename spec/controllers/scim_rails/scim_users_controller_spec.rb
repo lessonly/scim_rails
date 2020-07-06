@@ -231,6 +231,8 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         http_login(company)
       end
 
+      let(:user) { company.users.first }
+
       it "returns scim+json content type" do
         post :create, params: {
           name: {
@@ -264,7 +266,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
         expect(response.status).to eq 201
         expect(company.users.count).to eq 1
-        user = company.users.first
         expect(user.persisted?).to eq true
         expect(user.first_name).to eq "New"
         expect(user.last_name).to eq "User"
@@ -364,8 +365,34 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
         expect(response.status).to eq 201
         expect(company.users.count).to eq 1
-        user = company.users.first
         expect(user.archived?).to eq true
+      end
+
+      it "creates user while with emails corresponding to their types" do
+        post :create, params: {
+          id: 1,
+          userName: "test@example.com",
+          name: {
+            givenName: "Test",
+            familyName: "User",
+          },
+          emails: [
+            {
+              type: "other",
+              value: "other@example.com",
+            },
+            {
+              type: "work",
+              value: "work@example.com",
+            },
+          ]
+        }
+
+        expect(response.status).to eq(201)
+        expect(company.users.count).to eq(1)
+
+        expect(user.email).to eq("work@example.com")
+        expect(user.alternate_email).to eq("other@example.com")
       end
     end
   end
@@ -461,6 +488,32 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         }
 
         expect(response.status).to eq 422
+      end
+
+      it "updates attributes corresponding to type-attribute mappings" do
+        put :put_update, params: {
+          id: 1,
+          userName: "test@example.com",
+          name: {
+            givenName: "Test",
+            familyName: "User",
+          },
+          emails: [
+            {
+              type: "other",
+              value: "other@example.com",
+            },
+            {
+              type: "work",
+              value: "work@example.com",
+            },
+          ],
+        }
+
+        expect(response.status).to eq(200)
+
+        expect(company.users.first.email).to eq("work@example.com")
+        expect(company.users.first.alternate_email).to eq("other@example.com")
       end
     end
   end
@@ -660,15 +713,17 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
                 op: patch_operation,
                 path: patch_path,
                 value: patch_value,
-              }
+              }.compact
             ]
           }
         end
 
+        let(:patch_value) { nil }
+
         before { patch :patch_update, params: params }
 
         context "when replace operation" do
-          let(:patch_operation) { "replace" }
+          let(:patch_operation) { "Replace" }
 
           context "with normal path" do
             let(:patch_path) { "testAttribute" }
@@ -681,7 +736,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
           context "with path containing periods" do
             let(:patch_path) { "name.givenName" }
-            let(:patch_value) { Faker::Name.name }
+            let(:patch_value) { Faker::Name.first_name }
 
             it "updates attribute" do
               expect(company_user.first_name).to eq(patch_value)
@@ -725,6 +780,28 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
               it "updates :alternate_email attribute" do
                 expect(company_user.alternate_email).to eq(patch_value)
               end
+            end
+          end
+        end
+
+        context "when add operation" do
+          let(:patch_operation) { "Add" }
+
+          context "with path related to single value attribute" do
+            let(:patch_path) { "name.givenName" }
+            let(:patch_value) { Faker::Name.first_name }
+
+            it "overwrites attribute" do
+              expect(company_user.first_name).to eq(patch_value)
+            end
+          end
+
+          context "when path related to multi value attribute" do
+            let(:patch_path) { "emails[type eq \"work\"].value" }
+            let(:patch_value) { Faker::Internet.email }
+
+            it "overwrites attribute" do
+              expect(company_user.email).to eq(patch_value)
             end
           end
         end

@@ -38,6 +38,10 @@ module ScimRails
     
     # Shared stuff...
 
+    def contains_square_brackets?(string)
+      !(string =~ /\[.*\]/).nil?
+    end
+
     def before_square_brackets(string)
       string.match(/([^\[]+)/).to_s
     end
