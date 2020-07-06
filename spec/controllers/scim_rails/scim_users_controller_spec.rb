@@ -526,12 +526,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(response.status).to eq 404
       end
 
-      it "returns 422 error for an op that isn't 'replace'" do
+      it "returns 422 error for an invalid op" do
         patch :patch_update, params: {
           id: 1,
           Operations: [
             {
-              op: "remove"
+              op: "hamburger"
             }
           ]
         }

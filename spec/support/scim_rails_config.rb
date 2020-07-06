@@ -110,4 +110,11 @@ ScimRails.configure do |config|
   #   print "#{object} #{status}"
   # end
 
+  config.scim_attribute_type_mappings = {
+    "emails" => {
+      "work" => :email,
+      "other" => :alternate_email,
+    },
+  }
+
 end

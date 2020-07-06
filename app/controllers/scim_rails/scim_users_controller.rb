@@ -82,7 +82,7 @@ module ScimRails
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
 
       params["Operations"].each do |operation|
-        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"].downcase != "replace"
+        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest unless ["replace", "add", "remove"].include?(operation["op"].downcase)
 
         path_params = extract_path_params(operation)
         changed_attributes = permitted_params(path_params || operation["value"])
