@@ -707,6 +707,26 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
               end
             end
           end
+
+          context "with path related to email array" do
+            context "when email is of 'work' type" do
+              let(:patch_path) { "emails[type eq \"work\"].value" }
+              let(:patch_value) { Faker::Internet.email }
+
+              it "updates :email attribute" do
+                expect(company_user.email).to eq(patch_value)
+              end
+            end
+
+            context "when email is of 'other' type" do
+              let(:patch_path) { "emails[type eq \"other\"].value" }
+              let(:patch_value) { Faker::Internet.email }
+
+              it "updates :alternate_email attribute" do
+                expect(company_user.alternate_email).to eq(patch_value)
+              end
+            end
+          end
         end
       end
     end
