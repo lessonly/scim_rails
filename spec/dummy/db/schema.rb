@@ -10,29 +10,29 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200408164220) do
+ActiveRecord::Schema.define(version: 2020_04_08_164220) do
 
   create_table "companies", force: :cascade do |t|
-    t.string   "name",       null: false
-    t.string   "subdomain",  null: false
-    t.string   "api_token",  null: false
+    t.string "name", null: false
+    t.string "subdomain", null: false
+    t.string "api_token", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
   create_table "groups", force: :cascade do |t|
-    t.string   "display_name",                     null: false
-    t.string   "email",                            null: false
-    t.boolean  "random_attribute", default: false
-    t.integer  "company_id"
+    t.string "display_name", null: false
+    t.string "email", null: false
+    t.boolean "random_attribute", default: false
+    t.integer "company_id"
     t.datetime "archived_at"
-    t.datetime "created_at",                       null: false
-    t.datetime "updated_at",                       null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "groups_users", force: :cascade do |t|
-    t.integer  "user_id"
-    t.integer  "group_id"
+    t.integer "user_id"
+    t.integer "group_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["group_id"], name: "index_groups_users_on_group_id"
@@ -40,15 +40,16 @@ ActiveRecord::Schema.define(version: 20200408164220) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string   "first_name",                       null: false
-    t.string   "last_name",                        null: false
-    t.string   "email",                            null: false
-    t.boolean  "random_attribute", default: false
-    t.string   "test_attribute"
-    t.integer  "company_id"
+    t.string "first_name", null: false
+    t.string "last_name", null: false
+    t.string "email", null: false
+    t.string "alternate_email"
+    t.boolean "random_attribute", default: false
+    t.string "test_attribute"
+    t.integer "company_id"
     t.datetime "archived_at"
-    t.datetime "created_at",                       null: false
-    t.datetime "updated_at",                       null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
 end
