@@ -146,6 +146,45 @@ module ScimRails
 
       full_hash
     end
+
+    # `multi_attr_type_to_value` is a method that takes a request body
+    # and compares it to the `scim_attribute_type_mappings`, to return
+    # a hash which may contain attributes of the User model
+    #
+    # Example: given the following:
+    #   schema_hash = {
+    #     "emails": [
+    #       {
+    #         "type": "work",
+    #         "value": "work@example.com"
+    #       }
+    #     ]
+    #   }
+    # and `scim_attribute_type_mappings` being defined as:
+    #   {
+    #     "emails" => {
+    #       "work" => :email
+    #     }
+    #   }
+    # means calling `multi_attr_type_to_value` will return the Hash
+    #   {
+    #     email: "work@example.com"
+    #   }
+    def multi_attr_type_to_value(schema_hash)
+      merge_params = {}
+
+      ScimRails.config.scim_attribute_type_mappings.each do |mapping_key, mapping_value|
+        if schema_hash.key?(mapping_key)
+          schema_hash[mapping_key].each do |attribute|
+            if mapping_value.key?(attribute["type"])
+              merge_params[mapping_value[attribute["type"]]] = attribute["value"]
+            end
+          end
+        end
+      end
+
+      merge_params
+    end
     
     # `path_for` is a recursive method used to find the "path" for
     # `.dig` to take when looking for a given attribute in the

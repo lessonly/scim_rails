@@ -123,22 +123,6 @@ module ScimRails
       schema_hash = contains_square_brackets?(operation["path"]) ? multi_attr_type_to_value(process_filter_path(operation)) : {}
     end
 
-    def multi_attr_type_to_value(schema_hash)
-      merge_params = {}
-
-      ScimRails.config.scim_attribute_type_mappings.each do |mapping_key, mapping_value|
-        if schema_hash.key?(mapping_key)
-          schema_hash[mapping_key].each do |attribute|
-            if mapping_value.key?(attribute["type"])
-              merge_params[mapping_value[attribute["type"]]] = attribute["value"]
-            end
-          end
-        end
-      end
-
-      merge_params
-    end
-
     def permitted_params(parameters)
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = parameters.dig(*path_for(attribute))
