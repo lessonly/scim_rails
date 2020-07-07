@@ -211,9 +211,9 @@ module ScimRails
         return
       end
 
-      pre_bracket_path = before_square_brackets(path_string)
-      filter = inside_square_brackets(path_string)
-      path_suffix = after_square_brackets(path_string)
+      pre_bracket_path = extract_from_before_square_brackets(path_string)
+      filter = extract_from_inside_square_brackets(path_string)
+      path_suffix = extract_from_after_square_brackets(path_string)
 
       raise ScimRails::ExceptionHandler::BadPatchPath unless (pre_bracket_path == "members" && path_suffix == "")
 

@@ -42,19 +42,19 @@ module ScimRails
       (string =~ /\[.*\]/).is_a?(Numeric)
     end
 
-    def before_square_brackets(string)
+    def extract_from_before_square_brackets(string)
       string.match(/([^\[]+)/).to_s
     end
 
-    def inside_square_brackets(string)
+    def extract_from_inside_square_brackets(string)
       string.match(/(?<=\[).+?(?=\])/).to_s
     end
 
-    def after_square_brackets(string)
+    def extract_from_after_square_brackets(string)
       string.match(/(?<=\]).*/).to_s
     end
 
-    def inside_quotations(string)
+    def extract_from_inside_quotations(string)
       string.match(/(?<=")[^"]+(?=")/).to_s
     end
 
@@ -129,13 +129,13 @@ module ScimRails
     def process_filter_path(operation)
       path_string = operation["path"]
 
-      pre_bracket_path = before_square_brackets(path_string)
-      filter = inside_square_brackets(path_string)
+      pre_bracket_path = extract_from_before_square_brackets(path_string)
+      filter = extract_from_inside_square_brackets(path_string)
 
       args = filter.split(' ')
 
       key = args[0]
-      value = inside_quotations(args[2])
+      value = extract_from_inside_quotations(args[2])
 
       inner_hash = {}
       inner_hash[key] = value
@@ -174,12 +174,12 @@ module ScimRails
       merge_params = {}
 
       ScimRails.config.scim_attribute_type_mappings.each do |mapping_key, mapping_value|
-        if schema_hash.key?(mapping_key)
-          schema_hash[mapping_key].each do |attribute|
-            if mapping_value.key?(attribute["type"])
-              merge_params[mapping_value[attribute["type"]]] = attribute["value"]
-            end
-          end
+        next unless schema_hash.key?(mapping_key)
+
+        schema_hash[mapping_key].each do |attribute|
+          next unless mapping_value.key?(attribute["type"])
+
+          merge_params[mapping_value[attribute["type"]]] = attribute["value"]
         end
       end
 
