@@ -38,6 +38,26 @@ module ScimRails
     
     # Shared stuff...
 
+    def contains_square_brackets?(string)
+      (string =~ /\[.*\]/).is_a?(Numeric)
+    end
+
+    def extract_from_before_square_brackets(string)
+      string.match(/([^\[]+)/).to_s
+    end
+
+    def extract_from_inside_square_brackets(string)
+      string.match(/(?<=\[).+?(?=\])/).to_s
+    end
+
+    def extract_from_after_square_brackets(string)
+      string.match(/(?<=\]).*/).to_s
+    end
+
+    def extract_from_inside_quotations(string)
+      string.match(/(?<=")[^"]+(?=")/).to_s
+    end
+
     def extract_path_params(operation)
       operation.key?("path") ? process_path(operation) : nil
     end
@@ -49,7 +69,7 @@ module ScimRails
     # `process_path` is a method that parses the string in the "path"
     # key of a PATCH operation. Together with the "value" key, it
     # converts it into a Hash that can be used in the `permitted_params`
-    # method to help update the attributes of a User.
+    # method to help update the attributes of a User or Group.
     #
     # Example: given the following operation:
     #   operation = {
@@ -80,6 +100,90 @@ module ScimRails
 
         acc
       end
+    end
+
+    # `process_filter_path` is a method that, like the `process_path`
+    # method above, parses the string in the "path" key of a PATCH
+    # operation.  It converts the operation into a Hash that resembles
+    # the User or Group schema, and it will be easier to fetch
+    # attributes needed to update a user or group.
+    #
+    # Example: given the following operation:
+    #   operation = {
+    #     'op': 'Add',
+    #     'path': 'emails[type eq \'work\'].value',
+    #     'value': 'Wolfe'
+    #   }
+    # then calling `process_filter_path(operation)` will return the
+    # Hash:
+    #   {
+    #     emails: [
+    #       {
+    #         type: 'work'
+    #         value: 'Wolfe'
+    #       }
+    #     ]
+    #   }
+    # which will will later be processed to fetch the attributes to be
+    # updated by the PATCH request
+    def process_filter_path(operation)
+      path_string = operation["path"]
+
+      pre_bracket_path = extract_from_before_square_brackets(path_string)
+      filter = extract_from_inside_square_brackets(path_string)
+
+      args = filter.split(' ')
+
+      key = args[0]
+      value = extract_from_inside_quotations(args[2])
+
+      inner_hash = {}
+      inner_hash[key] = value
+      inner_hash["value"] = operation["value"]
+
+      full_hash = {}
+      full_hash[pre_bracket_path] = [ inner_hash ]
+
+      full_hash
+    end
+
+    # `multi_attr_type_to_value` is a method that takes a request body
+    # and compares it to the `scim_attribute_type_mappings`, to return
+    # a hash which may contain attributes of the User model
+    #
+    # Example: given the following:
+    #   schema_hash = {
+    #     "emails": [
+    #       {
+    #         "type": "work",
+    #         "value": "work@example.com"
+    #       }
+    #     ]
+    #   }
+    # and `scim_attribute_type_mappings` being defined as:
+    #   {
+    #     "emails" => {
+    #       "work" => :email
+    #     }
+    #   }
+    # means calling `multi_attr_type_to_value` will return the Hash
+    #   {
+    #     email: "work@example.com"
+    #   }
+    def multi_attr_type_to_value(schema_hash)
+      merge_params = {}
+
+      ScimRails.config.scim_attribute_type_mappings.each do |mapping_key, mapping_value|
+        next unless schema_hash.key?(mapping_key)
+
+        schema_hash[mapping_key].each do |attribute|
+          next unless mapping_value.key?(attribute["type"])
+
+          merge_params[mapping_value[attribute["type"]]] = attribute["value"]
+        end
+      end
+
+      merge_params
     end
     
     # `path_for` is a recursive method used to find the "path" for

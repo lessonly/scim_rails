@@ -33,19 +33,20 @@ module ScimRails
     def create
       ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
+      user_params = permitted_params(params).merge(multi_attr_type_to_value(params))
+
       if ScimRails.config.scim_user_prevent_update_on_create
-        user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_params(params))
+        user = @company.public_send(ScimRails.config.scim_users_scope).create!(user_params)
       else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
 
         find_by_username = Hash.new
-        permitted_user_params = permitted_params(params)
 
-        find_by_username[username_key] = permitted_user_params[username_key]
+        find_by_username[username_key] = user_params[username_key]
         user = @company
           .public_send(ScimRails.config.scim_users_scope)
           .find_or_create_by(find_by_username)
-        user.update!(permitted_user_params)
+        user.update!(user_params)
       end
       update_status(user) unless put_active_param.nil?
 
@@ -69,7 +70,9 @@ module ScimRails
 
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       update_status(user) unless put_active_param.nil?
-      user.update!(permitted_params(params))
+
+      user_params = permitted_params(params).merge(multi_attr_type_to_value(params))
+      user.update!(user_params)
 
       ScimRails.config.after_scim_response.call(user, "UPDATED") unless ScimRails.config.after_scim_response.nil?
 
@@ -82,10 +85,10 @@ module ScimRails
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
 
       params["Operations"].each do |operation|
-        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if operation["op"].downcase != "replace"
+        raise ScimRails::ExceptionHandler::UnsupportedPatchRequest unless ["replace", "add", "remove"].include?(operation["op"].downcase)
 
         path_params = extract_path_params(operation)
-        changed_attributes = permitted_params(path_params || operation["value"])
+        changed_attributes = permitted_params(path_params || operation["value"]).merge(get_multi_value_attrs(operation))
 
         user.update!(changed_attributes.compact)
 
@@ -115,6 +118,10 @@ module ScimRails
     end
 
     private
+
+    def get_multi_value_attrs(operation)
+      schema_hash = contains_square_brackets?(operation["path"]) ? multi_attr_type_to_value(process_filter_path(operation)) : {}
+    end
 
     def permitted_params(parameters)
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|

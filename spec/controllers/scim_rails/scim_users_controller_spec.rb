@@ -231,6 +231,8 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         http_login(company)
       end
 
+      let(:user) { company.users.first }
+
       it "returns scim+json content type" do
         post :create, params: {
           name: {
@@ -264,7 +266,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
         expect(response.status).to eq 201
         expect(company.users.count).to eq 1
-        user = company.users.first
         expect(user.persisted?).to eq true
         expect(user.first_name).to eq "New"
         expect(user.last_name).to eq "User"
@@ -364,8 +365,34 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
         expect(response.status).to eq 201
         expect(company.users.count).to eq 1
-        user = company.users.first
         expect(user.archived?).to eq true
+      end
+
+      it "creates user while with emails corresponding to their types" do
+        post :create, params: {
+          id: 1,
+          userName: "test@example.com",
+          name: {
+            givenName: "Test",
+            familyName: "User",
+          },
+          emails: [
+            {
+              type: "other",
+              value: "other@example.com",
+            },
+            {
+              type: "work",
+              value: "work@example.com",
+            },
+          ]
+        }
+
+        expect(response.status).to eq(201)
+        expect(company.users.count).to eq(1)
+
+        expect(user.email).to eq("work@example.com")
+        expect(user.alternate_email).to eq("other@example.com")
       end
     end
   end
@@ -462,6 +489,32 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
         expect(response.status).to eq 422
       end
+
+      it "updates attributes corresponding to type-attribute mappings" do
+        put :put_update, params: {
+          id: 1,
+          userName: "test@example.com",
+          name: {
+            givenName: "Test",
+            familyName: "User",
+          },
+          emails: [
+            {
+              type: "other",
+              value: "other@example.com",
+            },
+            {
+              type: "work",
+              value: "work@example.com",
+            },
+          ],
+        }
+
+        expect(response.status).to eq(200)
+
+        expect(company.users.first.email).to eq("work@example.com")
+        expect(company.users.first.alternate_email).to eq("other@example.com")
+      end
     end
   end
 
@@ -526,12 +579,12 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(response.status).to eq 404
       end
 
-      it "returns 422 error for an op that isn't 'replace'" do
+      it "returns 422 error for an invalid op" do
         patch :patch_update, params: {
           id: 1,
           Operations: [
             {
-              op: "remove"
+              op: "hamburger"
             }
           ]
         }
@@ -652,31 +705,105 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       context "with azure requests" do
-        let(:new_test_attribute) { Faker::Games::Pokemon.move }
-        let(:new_name) { Faker::Name.name }
-
-        it "processes path field and updates attribute" do
-          patch :patch_update, params: azure_patch_params(id: 1, path: "testAttribute", value: new_test_attribute)
-
-          expect(company_user.test_attribute).to eq(new_test_attribute)
+        let(:params) do
+          {
+            id: 1,
+            Operations: [
+              {
+                op: patch_operation,
+                path: patch_path,
+                value: patch_value,
+              }.compact
+            ]
+          }
         end
 
-        it "processes path with periods and updates attribute" do
-          patch :patch_update, params: azure_patch_params(id: 1, path: "name.givenName", value: new_name)
+        let(:patch_value) { nil }
 
-          expect(company_user.first_name).to eq(new_name)
+        before { patch :patch_update, params: params }
+
+        context "when replace operation" do
+          let(:patch_operation) { "Replace" }
+
+          context "with normal path" do
+            let(:patch_path) { "testAttribute" }
+            let(:patch_value) { Faker::Games::Pokemon.move }
+
+            it "updates attribute" do
+              expect(company_user.test_attribute).to eq(patch_value)
+            end
+          end
+
+          context "with path containing periods" do
+            let(:patch_path) { "name.givenName" }
+            let(:patch_value) { Faker::Name.first_name }
+
+            it "updates attribute" do
+              expect(company_user.first_name).to eq(patch_value)
+            end
+          end
+
+          context "with path active" do
+            let(:patch_path) { "active" }
+
+            context "when true" do
+              let(:patch_value) { true }
+
+              it "activates user" do
+                expect(company_user.archived?).to eq(false)
+              end
+            end
+
+            context "when false" do
+              let(:patch_value) { false }
+
+              it "deactivates user" do
+                expect(company_user.archived?).to eq(true)
+              end
+            end
+          end
+
+          context "with path related to email array" do
+            context "when email is of 'work' type" do
+              let(:patch_path) { "emails[type eq \"work\"].value" }
+              let(:patch_value) { Faker::Internet.email }
+
+              it "updates :email attribute" do
+                expect(company_user.email).to eq(patch_value)
+              end
+            end
+
+            context "when email is of 'other' type" do
+              let(:patch_path) { "emails[type eq \"other\"].value" }
+              let(:patch_value) { Faker::Internet.email }
+
+              it "updates :alternate_email attribute" do
+                expect(company_user.alternate_email).to eq(patch_value)
+              end
+            end
+          end
         end
 
-        it "processes path and activates user" do
-          patch :patch_update, params: azure_patch_params(id: 1, path: "active", value: true)
+        context "when add operation" do
+          let(:patch_operation) { "Add" }
 
-          expect(company_user.archived?).to eq(false)
-        end
+          context "with path related to single value attribute" do
+            let(:patch_path) { "name.givenName" }
+            let(:patch_value) { Faker::Name.first_name }
 
-        it "processes path and deactivates user" do
-          patch :patch_update, params: azure_patch_params(id: 1, path: "active", value: false)
+            it "overwrites attribute" do
+              expect(company_user.first_name).to eq(patch_value)
+            end
+          end
 
-          expect(company_user.archived?).to eq(true)
+          context "when path related to multi value attribute" do
+            let(:patch_path) { "emails[type eq \"work\"].value" }
+            let(:patch_value) { Faker::Internet.email }
+
+            it "overwrites attribute" do
+              expect(company_user.email).to eq(patch_value)
+            end
+          end
         end
       end
     end
@@ -750,19 +877,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           value: {
             active: active
           }
-        }
-      ]
-    }
-  end
-
-  def azure_patch_params(id:, path:, value:)
-    {
-      id: id,
-      Operations: [
-        {
-          op: "Replace",
-          path: path,
-          value: value
         }
       ]
     }

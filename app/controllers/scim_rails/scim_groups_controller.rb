@@ -211,17 +211,9 @@ module ScimRails
         return
       end
 
-      # Everything before square brackets
-      # E.g. given a path_string of "prefix[inner]suffix", pre_bracket_path will be "prefix"
-      pre_bracket_path = path_string.match(/([^\[]+)/).to_s
-
-      # Everything within the square brackets
-      # E.g. using path_string from the above example, filter will be "inner"
-      filter = path_string.match(/(?<=\[).+?(?=\])/).to_s
-
-      # Everything after the square brackets (this should be empty)
-      # E.g. using path_string from the above example, path_suffix will be "suffix"
-      path_suffix = path_string.match(/(?<=\]).*/).to_s
+      pre_bracket_path = extract_from_before_square_brackets(path_string)
+      filter = extract_from_inside_square_brackets(path_string)
+      path_suffix = extract_from_after_square_brackets(path_string)
 
       raise ScimRails::ExceptionHandler::BadPatchPath unless (pre_bracket_path == "members" && path_suffix == "")
 
