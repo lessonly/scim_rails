@@ -24,7 +24,7 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency "bundler"
   s.add_development_dependency "factory_bot_rails"
-  s.add_development_dependency "rake", "~> 10.0"
+  s.add_development_dependency "rake", "~> 13.0"
   s.add_development_dependency "rspec-rails", "~> 3.0"
   s.add_development_dependency "pry-rescue"
   s.add_development_dependency "faker"
