@@ -125,6 +125,21 @@ module ScimRails
       @company.public_send(ScimRails.config.scim_users_scope).find(member_ids)
     end
 
+    def put_error_check
+      member_error_check(params["members"])
+        
+      return if params[:active].nil?
+
+      case params[:active]
+      when true, "true", 1
+        
+      when false, "false", 0
+        
+      else
+        raise ScimRails::ExceptionHandler::InvalidActiveParam
+      end
+    end
+
     def add_members(group, member_ids)
       new_member_ids = member_ids - group.public_send(ScimRails.config.scim_group_member_scope).pluck(:id)
       new_members = @company.public_send(ScimRails.config.scim_users_scope).find(new_member_ids)
@@ -138,18 +153,11 @@ module ScimRails
       group.public_send(ScimRails.config.scim_group_member_scope).delete(target_members)
     end
 
-    def put_error_check
-      member_error_check(params["members"])
-        
-      return if params[:active].nil?
-
-      case params[:active]
-      when true, "true", 1
-        
-      when false, "false", 0
-        
+    def patch_replace(group, operation)
+      if operation["path"] == "members"
+        patch_replace_members(group, operation)
       else
-        raise ScimRails::ExceptionHandler::InvalidActiveParam
+        patch_replace_attributes(group, operation)
       end
     end
 
@@ -175,14 +183,6 @@ module ScimRails
       return if status.nil?
       provision_method = status ? ScimRails.config.group_reprovision_method : ScimRails.config.group_deprovision_method
       group.public_send(provision_method)
-    end
-
-    def patch_replace(group, operation)
-      if operation["path"] == "members"
-        patch_replace_members(group, operation)
-      else
-        patch_replace_attributes(group, operation)
-      end
     end
 
     def patch_add(group, operation)
@@ -223,9 +223,7 @@ module ScimRails
           .public_send(ScimRails.config.scim_users_scope)
           .where("#{query.query_elements[0]} #{query.operator} ?", query.parameter)
 
-      members.each do |member|
-        group.public_send(ScimRails.config.scim_group_member_scope).delete(member.id)
-      end
+      group.public_send(ScimRails.config.scim_group_member_scope).delete(members)
     end
 
     def filter_to_query(filter)
