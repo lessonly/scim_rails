@@ -86,17 +86,10 @@ module ScimRails
 
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
 
-      params["Operations"].each do |operation|
-        case operation["op"].downcase
-        when "replace"
-          patch_replace(group, operation)
-        when "add"
-          patch_add(group, operation)
-        when "remove"
-          patch_remove(group, operation)
-        else
-          raise ScimRails::ExceptionHandler::UnsupportedGroupPatchRequest
-        end
+      if params.key?("members")
+        one_login_group_patch(group, params["members"])
+      else
+        process_operations(group, params)
       end
 
       ScimRails.config.after_scim_response.call(group, "UPDATED") unless ScimRails.config.after_scim_response.nil?
@@ -116,6 +109,39 @@ module ScimRails
     end
 
     private
+
+    def members_to_added_ids(members)
+      members.map{ |member| member["value"] unless member.key?("operation") }.compact
+    end
+
+    def members_to_deleted_ids(members)
+      members.map{ |member| member["value"] if (member.key?("operation") && member["operation"] == "delete") }.compact
+    end
+
+    def one_login_group_patch(group, members)
+      member_error_check(members)
+
+      ids_to_be_added = members_to_added_ids(members)
+      ids_to_be_deleted = members_to_deleted_ids(members)
+
+      add_members(group, ids_to_be_added) unless ids_to_be_added.empty?
+      remove_members(group, ids_to_be_deleted) unless ids_to_be_deleted.empty?
+    end
+
+    def process_operations(group, params)
+      params["Operations"].each do |operation|
+        case operation["op"].downcase
+        when "replace"
+          patch_replace(group, operation)
+        when "add"
+          patch_add(group, operation)
+        when "remove"
+          patch_remove(group, operation)
+        else
+          raise ScimRails::ExceptionHandler::UnsupportedGroupPatchRequest
+        end
+      end
+    end
 
     def member_error_check(members)
       raise ScimRails::ExceptionHandler::InvalidMembers unless (members.is_a?(Array) && array_of_hashes?(members))
