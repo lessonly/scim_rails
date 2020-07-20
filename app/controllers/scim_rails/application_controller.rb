@@ -187,9 +187,15 @@ module ScimRails
     end
 
     def permitted_params(parameters, object_type)
-      mutable_attributes = (object_type == "User") ? ScimRails.config.mutable_user_attributes : ScimRails.config.mutable_group_attributes
-      mutable_attributes_schema = (object_type == "User") ? ScimRails.config.mutable_user_attributes_schema : ScimRails.config.mutable_group_attributes_schema
-      custom_attributes = (object_type == "User") ? ScimRails.config.custom_user_attributes : ScimRails.config.custom_user_attributes
+      if object_type == "User"
+        mutable_attributes = ScimRails.config.mutable_user_attributes
+        mutable_attributes_schema = ScimRails.config.mutable_user_attributes_schema
+        custom_attributes = ScimRails.config.custom_user_attributes
+      else
+        mutable_attributes = ScimRails.config.mutable_group_attributes
+        mutable_attributes_schema = ScimRails.config.mutable_group_attributes_schema
+        custom_attributes = ScimRails.config.custom_user_attributes
+      end
 
       mutable_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = parameters.dig(*path_for(attribute, mutable_attributes_schema))
@@ -224,9 +230,14 @@ module ScimRails
     end
 
     def update_status(object)
-      reprovision_method = object.is_a?(ScimRails.config.scim_users_model) ? ScimRails.config.user_reprovision_method : ScimRails.config.group_reprovision_method
-      deprovision_method = object.is_a?(ScimRails.config.scim_users_model) ? ScimRails.config.user_deprovision_method : ScimRails.config.group_deprovision_method
-      
+      if object.is_a?(ScimRails.config.scim_users_model)
+        reprovision_method = ScimRails.config.user_reprovision_method
+        deprovision_method = ScimRails.config.user_deprovision_method
+      else
+        reprovision_method = ScimRails.config.group_reprovision_method
+        deprovision_method = ScimRails.config.group_deprovision_method
+      end
+
       object.public_send(reprovision_method) if active?
       object.public_send(deprovision_method) unless active?
     end
