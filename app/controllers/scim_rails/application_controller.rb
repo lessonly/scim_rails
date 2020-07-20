@@ -194,7 +194,7 @@ module ScimRails
       else
         mutable_attributes = ScimRails.config.mutable_group_attributes
         mutable_attributes_schema = ScimRails.config.mutable_group_attributes_schema
-        custom_attributes = ScimRails.config.custom_user_attributes
+        custom_attributes = ScimRails.config.custom_group_attributes
       end
 
       mutable_attributes.each.with_object({}) do |attribute, hash|
