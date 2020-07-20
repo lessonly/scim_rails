@@ -130,14 +130,7 @@ module ScimRails
         
       return if params[:active].nil?
 
-      case params[:active]
-      when true, "true", 1
-        
-      when false, "false", 0
-        
-      else
-        raise ScimRails::ExceptionHandler::InvalidActiveParam
-      end
+      raise ScimRails::ExceptionHandler::InvalidActiveParam unless [true, "true", 1, false, "false", 0].include?(params[:active])
     end
 
     def add_members(group, member_ids)
