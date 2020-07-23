@@ -86,8 +86,10 @@ module ScimRails
 
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
 
+      group.update!(ScimRails.config.custom_group_attributes)
+
       if params.key?("members")
-        one_login_group_patch(group, params["members"])
+        one_login_member_patch(group, params["members"])
       else
         process_operations(group, params)
       end
@@ -101,7 +103,9 @@ module ScimRails
       ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
-      group.delete
+      group.update!(ScimRails.config.custom_group_attributes)
+
+      group.destroy
 
       ScimRails.config.after_scim_response.call(group, "DELETED") unless ScimRails.config.after_scim_response.nil?
 
@@ -118,7 +122,7 @@ module ScimRails
       members.map{ |member| member["value"] if (member.key?("operation") && member["operation"] == "delete") }.compact
     end
 
-    def one_login_group_patch(group, members)
+    def one_login_member_patch(group, members)
       member_error_check(members)
 
       ids_to_be_added = members_to_added_ids(members)
@@ -161,7 +165,7 @@ module ScimRails
     def remove_members(group, member_ids)
       target_members = group.public_send(ScimRails.config.scim_group_member_scope).find(member_ids)
 
-      group.public_send(ScimRails.config.scim_group_member_scope).delete(target_members)
+      group.public_send(ScimRails.config.scim_group_member_scope).destroy(target_members)
     end
 
     def put_error_check
@@ -233,7 +237,7 @@ module ScimRails
         return
         
       elsif path_string == "members"
-        group.public_send(ScimRails.config.scim_group_member_scope).delete_all
+        group.public_send(ScimRails.config.scim_group_member_scope).destroy_all
         return
       end
 
@@ -250,7 +254,7 @@ module ScimRails
           .where("#{query.query_elements[0]} #{query.operator} ?", query.parameter)
 
       members.each do |member|
-        group.public_send(ScimRails.config.scim_group_member_scope).delete(member.id)
+        group.public_send(ScimRails.config.scim_group_member_scope).destroy(member.id)
       end
     end
 
