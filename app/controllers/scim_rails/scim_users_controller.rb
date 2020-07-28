@@ -73,7 +73,7 @@ module ScimRails
       user_params = permitted_params(params, "User").merge(multi_attr_type_to_value(params))
       user.update!(user_params)
 
-      update_status(user) unless put_active_param.nil?
+      update_status(user) unless params[:active].nil?
 
       ScimRails.config.after_scim_response.call(user, "UPDATED") unless ScimRails.config.after_scim_response.nil?
 
