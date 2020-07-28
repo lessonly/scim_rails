@@ -69,10 +69,11 @@ module ScimRails
       ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
-      update_status(user) unless params[:active].nil?
 
       user_params = permitted_params(params, "User").merge(multi_attr_type_to_value(params))
       user.update!(user_params)
+
+      update_status(user) unless put_active_param.nil?
 
       ScimRails.config.after_scim_response.call(user, "UPDATED") unless ScimRails.config.after_scim_response.nil?
 
@@ -110,7 +111,9 @@ module ScimRails
       ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
-      user.delete
+      user.update!(ScimRails.config.custom_user_attributes)
+      
+      user.destroy
 
       ScimRails.config.after_scim_response.call(user, "DELETED") unless ScimRails.config.after_scim_response.nil?
 

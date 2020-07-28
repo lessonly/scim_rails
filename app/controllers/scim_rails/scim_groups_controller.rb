@@ -86,6 +86,53 @@ module ScimRails
 
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
 
+      group.update!(ScimRails.config.custom_group_attributes)
+
+      if params.key?("members")
+        one_login_member_patch(group, params["members"])
+      else
+        process_operations(group, params)
+      end
+
+      ScimRails.config.after_scim_response.call(group, "UPDATED") unless ScimRails.config.after_scim_response.nil?
+
+      json_scim_group_response(object: group)
+    end
+
+    def delete
+      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
+
+      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+      group.update!(ScimRails.config.custom_group_attributes)
+
+      group.destroy
+
+      ScimRails.config.after_scim_response.call(group, "DELETED") unless ScimRails.config.after_scim_response.nil?
+
+      json_scim_group_response(object: nil, status: :no_content)
+    end
+
+    private
+
+    def members_to_added_ids(members)
+      members.map{ |member| member["value"] unless member.key?("operation") }.compact
+    end
+
+    def members_to_deleted_ids(members)
+      members.map{ |member| member["value"] if (member.key?("operation") && member["operation"] == "delete") }.compact
+    end
+
+    def one_login_member_patch(group, members)
+      member_error_check(members)
+
+      ids_to_be_added = members_to_added_ids(members)
+      ids_to_be_deleted = members_to_deleted_ids(members)
+
+      add_members(group, ids_to_be_added) unless ids_to_be_added.empty?
+      remove_members(group, ids_to_be_deleted) unless ids_to_be_deleted.empty?
+    end
+
+    def process_operations(group, params)
       params["Operations"].each do |operation|
         case operation["op"].downcase
         when "replace"
@@ -98,24 +145,7 @@ module ScimRails
           raise ScimRails::ExceptionHandler::UnsupportedGroupPatchRequest
         end
       end
-
-      ScimRails.config.after_scim_response.call(group, "UPDATED") unless ScimRails.config.after_scim_response.nil?
-
-      json_scim_group_response(object: group)
     end
-
-    def delete
-      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
-
-      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
-      group.delete
-
-      ScimRails.config.after_scim_response.call(group, "DELETED") unless ScimRails.config.after_scim_response.nil?
-
-      json_scim_group_response(object: nil, status: :no_content)
-    end
-
-    private
 
     def member_error_check(members)
       raise ScimRails::ExceptionHandler::InvalidMembers unless (members.is_a?(Array) && array_of_hashes?(members))
@@ -143,7 +173,7 @@ module ScimRails
     def remove_members(group, member_ids)
       target_members = group.public_send(ScimRails.config.scim_group_member_scope).find(member_ids)
 
-      group.public_send(ScimRails.config.scim_group_member_scope).delete(target_members)
+      group.public_send(ScimRails.config.scim_group_member_scope).destroy(target_members)
     end
 
     def patch_replace(group, operation)
@@ -200,7 +230,7 @@ module ScimRails
         return
         
       elsif path_string == "members"
-        group.public_send(ScimRails.config.scim_group_member_scope).delete_all
+        group.public_send(ScimRails.config.scim_group_member_scope).destroy_all
         return
       end
 
@@ -216,7 +246,9 @@ module ScimRails
           .public_send(ScimRails.config.scim_users_scope)
           .where("#{query.query_elements[0]} #{query.operator} ?", query.parameter)
 
-      group.public_send(ScimRails.config.scim_group_member_scope).delete(members)
+      members.each do |member|
+        group.public_send(ScimRails.config.scim_group_member_scope).destroy(member.id)
+      end
     end
 
     def filter_to_query(filter)
