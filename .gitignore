@@ -7,4 +7,5 @@ spec/dummy/log/*.log
 spec/dummy/tmp/
 .rubocop-https*
 
-Gemfile.lock
+*/vendor/bundle/*
+*emfile.lock

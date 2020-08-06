@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/lessonly/scim_rails.svg?branch=master)](https://travis-ci.com/lessonly/scim_rails)
+
 # ScimRails
 
 NOTE: This Gem is not yet fully SCIM complaint. It was developed with the main function of interfacing with Okta. There are features of SCIM that this Gem does not implement as described in the SCIM documentation or that have been left out completely.
