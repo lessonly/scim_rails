@@ -1,0 +1,12 @@
+language: ruby
+cache: bundler
+rvm:
+  - 2.7
+  - 2.6
+gemfile:
+  - Gemfile
+  - gemfiles/rails_5.gemfile
+before_script:
+  - bin/rails db:migrate RAILS_ENV=test
+before_install:
+  - gem install bundler

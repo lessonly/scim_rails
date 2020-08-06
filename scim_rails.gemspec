@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "jwt", ">= 1.5"
   s.test_files = Dir["spec/**/*"]
 
+  s.add_development_dependency "appraisal"
   s.add_development_dependency "bundler", "~> 2.0"
   s.add_development_dependency "factory_bot_rails"
   s.add_development_dependency "rake", "~> 13.0"
