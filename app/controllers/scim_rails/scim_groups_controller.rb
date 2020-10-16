@@ -28,10 +28,10 @@ module ScimRails
     def create
       ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
-      group_attributes = permitted_params(params, "Group")
+      group_attributes = permitted_params(params, "Group").except(:members)
 
       if ScimRails.config.scim_group_prevent_update_on_create
-        group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes.except(:members))
+        group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes)
       else
         username_key = ScimRails.config.queryable_group_attributes[:userName]
         find_by_username = {}
@@ -39,7 +39,7 @@ module ScimRails
         group = @company
           .public_send(ScimRails.config.scim_groups_scope)
           .find_or_create_by(find_by_username)
-        group.update!(group_attributes.except(:members))
+        group.update!(group_attributes)
       end
 
       update_status(group) unless params[:active].nil?
