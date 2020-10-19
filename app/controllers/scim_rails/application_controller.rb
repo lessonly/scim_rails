@@ -185,7 +185,23 @@ module ScimRails
 
       merge_params
     end
-    
+
+    def permitted_params(parameters, object_type)
+      if object_type == "User"
+        mutable_attributes = ScimRails.config.mutable_user_attributes
+        mutable_attributes_schema = ScimRails.config.mutable_user_attributes_schema
+        custom_attributes = ScimRails.config.custom_user_attributes
+      else
+        mutable_attributes = ScimRails.config.mutable_group_attributes
+        mutable_attributes_schema = ScimRails.config.mutable_group_attributes_schema
+        custom_attributes = ScimRails.config.custom_group_attributes
+      end
+
+      mutable_attributes.each.with_object({}) do |attribute, hash|
+        hash[attribute] = parameters.dig(*path_for(attribute, mutable_attributes_schema))
+      end.merge(custom_attributes)
+    end
+ 
     # `path_for` is a recursive method used to find the "path" for
     # `.dig` to take when looking for a given attribute in the
     # params.
@@ -193,7 +209,7 @@ module ScimRails
     # Example: `path_for(:name)` should return an array that looks
     # like [:names, 0, :givenName]. `.dig` can then use that path
     # against the params to translate the :name attribute to "John".
-    def path_for(attribute, object = ScimRails.config.mutable_user_attributes_schema, path = [])
+    def path_for(attribute, object, path = [])
       at_path = path.empty? ? object : object.dig(*path)
       return path if at_path == attribute
 
@@ -213,9 +229,21 @@ module ScimRails
       end
     end
 
+    def update_status(object)
+      if object.is_a?(ScimRails.config.scim_users_model)
+        reprovision_method = ScimRails.config.user_reprovision_method
+        deprovision_method = ScimRails.config.user_deprovision_method
+      else
+        reprovision_method = ScimRails.config.group_reprovision_method
+        deprovision_method = ScimRails.config.group_deprovision_method
+      end
+
+      object.public_send(reprovision_method) if active?
+      object.public_send(deprovision_method) unless active?
+    end
+
     def active?
-      active = put_active_param
-      active = patch_active_param if active.nil?
+      active = params[:active]
 
       case active
       when true, "true", 1
@@ -227,14 +255,17 @@ module ScimRails
       end
     end
 
-    def put_active_param
-      params[:active]
-    end
-
-    def patch_active_param
-      active = params.dig("Operations", 0, "value", "active")
-      raise ScimRails::ExceptionHandler::UnsupportedPatchRequest if active.nil?
-      active
+    def patch_status(active_param)
+      case active_param
+      when true, "true", 1
+        true
+      when false, "false", 0
+        false
+      when nil
+        nil
+      else
+        raise ScimRails::ExceptionHandler::InvalidActiveParam
+      end
     end
   end
 end

@@ -28,10 +28,10 @@ module ScimRails
     def create
       ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
-      group_attributes = permitted_group_params(params)
+      group_attributes = permitted_params(params, "Group").except(:members)
 
       if ScimRails.config.scim_group_prevent_update_on_create
-        group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes.except(:members))
+        group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes)
       else
         username_key = ScimRails.config.queryable_group_attributes[:userName]
         find_by_username = {}
@@ -39,10 +39,10 @@ module ScimRails
         group = @company
           .public_send(ScimRails.config.scim_groups_scope)
           .find_or_create_by(find_by_username)
-        group.update!(group_attributes.except(:members))
+        group.update!(group_attributes)
       end
 
-      update_group_status(group) unless put_active_param.nil?
+      update_status(group) unless params[:active].nil?
 
       ScimRails.config.after_scim_response.call(group, "CREATED") unless ScimRails.config.after_scim_response.nil?
 
@@ -66,10 +66,10 @@ module ScimRails
 
       put_error_check
 
-      group_attributes = permitted_group_params(params)
+      group_attributes = permitted_params(params, "Group")
       group.update!(group_attributes.except(:members))
 
-      update_group_status(group) unless put_active_param.nil?
+      update_status(group) unless params[:active].nil?
 
       member_ids = params["members"]&.map{ |member| member["value"] }
 
@@ -155,6 +155,14 @@ module ScimRails
       @company.public_send(ScimRails.config.scim_users_scope).find(member_ids)
     end
 
+    def put_error_check
+      member_error_check(params["members"])
+        
+      return if params[:active].nil?
+
+      raise ScimRails::ExceptionHandler::InvalidActiveParam unless [true, "true", 1, false, "false", 0].include?(params[:active])
+    end
+
     def add_members(group, member_ids)
       new_member_ids = member_ids - group.public_send(ScimRails.config.scim_group_member_scope).pluck(:id)
       new_members = @company.public_send(ScimRails.config.scim_users_scope).find(new_member_ids)
@@ -168,18 +176,11 @@ module ScimRails
       group.public_send(ScimRails.config.scim_group_member_scope).destroy(target_members)
     end
 
-    def put_error_check
-      member_error_check(params["members"])
-        
-      return if put_active_param.nil?
-
-      case put_active_param
-      when true, "true", 1
-        
-      when false, "false", 0
-        
+    def patch_replace(group, operation)
+      if operation["path"] == "members"
+        patch_replace_members(group, operation)
       else
-        raise ScimRails::ExceptionHandler::InvalidActiveParam
+        patch_replace_attributes(group, operation)
       end
     end
 
@@ -195,24 +196,16 @@ module ScimRails
     def patch_replace_attributes(group, operation)
       path_params = extract_path_params(operation)
 
-      group_attributes = permitted_group_params(path_params || operation["value"])
+      group_attributes = permitted_params(path_params || operation["value"], "Group")
 
       active_param = extract_active_param(operation, path_params)
-      status = patch_group_status(active_param)
+      status = patch_status(active_param)
 
       group.update!(group_attributes.compact)
 
       return if status.nil?
       provision_method = status ? ScimRails.config.group_reprovision_method : ScimRails.config.group_deprovision_method
       group.public_send(provision_method)
-    end
-
-    def patch_replace(group, operation)
-      if operation["path"] == "members"
-        patch_replace_members(group, operation)
-      else
-        patch_replace_attributes(group, operation)
-      end
     end
 
     def patch_add(group, operation)
@@ -279,48 +272,5 @@ module ScimRails
     def array_of_hashes?(array)
       array.all? { |hash| hash.is_a?(ActionController::Parameters) }
     end
-
-    def permitted_group_params(parameters)
-      ScimRails.config.mutable_group_attributes.each.with_object({}) do |attribute, hash|
-        hash[attribute] = parameters.dig(*group_path_for(attribute))
-      end.merge(ScimRails.config.custom_group_attributes)
-    end
-
-    def update_group_status(group)
-      group.public_send(ScimRails.config.group_reprovision_method) if active?
-      group.public_send(ScimRails.config.group_deprovision_method) unless active?
-    end
-
-    def group_path_for(attribute, object = ScimRails.config.mutable_group_attributes_schema, path = [])
-      at_path = path.empty? ? object : object.dig(*path)
-      return path if at_path == attribute
-
-      case at_path
-      when Hash
-        at_path.each do |key, value|
-          found_path = path_for(attribute, object, [*path, key])
-          return found_path if found_path
-        end
-      when Array
-        at_path.each_with_index do |value, index|
-          found_path = path_for(attribute, object, [*path, index])
-          return found_path if found_path
-        end
-      end
-    end
-
-    def patch_group_status(active_param)
-      case active_param
-      when true, "true", 1
-        true
-      when false, "false", 0
-        false
-      when nil
-        nil
-      else
-        raise ScimRails::ExceptionHandler::InvalidActiveParam
-      end
-    end
-
   end
 end

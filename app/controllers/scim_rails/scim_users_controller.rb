@@ -33,7 +33,7 @@ module ScimRails
     def create
       ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
-      user_params = permitted_params(params).merge(multi_attr_type_to_value(params))
+      user_params = permitted_params(params, "User").merge(multi_attr_type_to_value(params))
 
       if ScimRails.config.scim_user_prevent_update_on_create
         user = @company.public_send(ScimRails.config.scim_users_scope).create!(user_params)
@@ -48,7 +48,7 @@ module ScimRails
           .find_or_create_by(find_by_username)
         user.update!(user_params)
       end
-      update_status(user) unless put_active_param.nil?
+      update_status(user) unless params[:active].nil?
 
       ScimRails.config.after_scim_response.call(user, "CREATED") unless ScimRails.config.after_scim_response.nil?
 
@@ -70,10 +70,10 @@ module ScimRails
 
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
 
-      user_params = permitted_params(params).merge(multi_attr_type_to_value(params))
+      user_params = permitted_params(params, "User").merge(multi_attr_type_to_value(params))
       user.update!(user_params)
 
-      update_status(user) unless put_active_param.nil?
+      update_status(user) unless params[:active].nil?
 
       ScimRails.config.after_scim_response.call(user, "UPDATED") unless ScimRails.config.after_scim_response.nil?
 
@@ -89,7 +89,7 @@ module ScimRails
         raise ScimRails::ExceptionHandler::UnsupportedPatchRequest unless ["replace", "add", "remove"].include?(operation["op"].downcase)
 
         path_params = extract_path_params(operation)
-        changed_attributes = permitted_params(path_params || operation["value"]).merge(get_multi_value_attrs(operation))
+        changed_attributes = permitted_params(path_params || operation["value"], "User").merge(get_multi_value_attrs(operation))
 
         user.update!(changed_attributes.compact)
 
@@ -124,45 +124,6 @@ module ScimRails
 
     def get_multi_value_attrs(operation)
       schema_hash = contains_square_brackets?(operation["path"]) ? multi_attr_type_to_value(process_filter_path(operation)) : {}
-    end
-
-    def permitted_params(parameters)
-      ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
-        hash[attribute] = parameters.dig(*path_for(attribute))
-      end.merge(ScimRails.config.custom_user_attributes)
-    end
-
-    def update_status(user)
-      user.public_send(ScimRails.config.user_reprovision_method) if active?
-      user.public_send(ScimRails.config.user_deprovision_method) unless active?
-    end
-
-    def patch_status(active_param)
-      case active_param
-      when true, "true", 1
-        true
-      when false, "false", 0
-        false
-      else
-        nil
-      end
-    end
-
-    def active?
-      active = put_active_param
-
-      case active
-      when true, "true", 1
-        true
-      when false, "false", 0
-        false
-      else
-        raise ActiveRecord::RecordInvalid
-      end
-    end
-
-    def put_active_param
-      params[:active]
     end
   end
 end
