@@ -686,6 +686,34 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
                   expect(response.status).to eq(404)
                 end
               end
+
+              context "with repeated member additions" do
+                let(:patch_value) { [ { value: new_user.id } ] }
+
+                let(:alt_patch_value) { [ { value: new_user.id.to_s } ] }
+                let(:alt_params) do
+                  {
+                    id: patch_id,
+                    Operations: [
+                      {
+                        op: patch_operation,
+                        path: patch_path,
+                        value: alt_patch_value
+                      }
+                    ]
+                  }
+                end
+
+                let(:alt_patch) { patch :patch_update, params: alt_params, as: :json }
+
+                it "only adds member to group once" do
+                  expect(response.status).to eq(200)
+                  expect(updated_user_list.length).to eq(user_list_length + 1)
+                  expect(updated_user_ids).to include(new_user.id)
+
+                  expect{ alt_patch }.to_not change{ updated_user_list.length }
+                end
+              end
             end
   
             context "when path not set to 'members'" do
