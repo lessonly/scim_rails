@@ -20,6 +20,8 @@ module ScimRails
       when "delete"
         head status
         return
+      when "configuration"
+        response = ScimRails.config.config_schema
       end
 
       render \

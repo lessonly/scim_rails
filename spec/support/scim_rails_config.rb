@@ -117,4 +117,39 @@ ScimRails.configure do |config|
     },
   }
 
+  config.config_schema = {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"],
+    patch: {
+      supported: true
+    },
+    bulk: {
+      supported: false,
+      maxOperations: 0,
+      maxPayloadSize: 0
+    },
+    filter: {
+      supported: true,
+    },
+    changePassword: {
+      supported: false
+    },
+    sort: {
+      supported: true
+    },
+    etag: {
+      supported: false
+    },
+    authenticationSchemes: [
+      {
+        type: "oauthbearertoken",
+        name: "Oauth Bearer Token",
+        description: "Authentication scheme using the OAuth Bearer Token Standard"
+      },
+      {
+        type: "httpbasic",
+        name: "HTTP Basic",
+        description: "Authentication scheme using the HTTP Basic Standard"
+      }
+    ]
+  }
 end

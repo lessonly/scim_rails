@@ -47,6 +47,7 @@ module ScimRails
       :before_scim_response,
       :after_scim_response,
       :scim_attribute_type_mappings,
+      :config_schema
 
     def initialize
       @basic_auth_model = "Company"
