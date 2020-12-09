@@ -152,4 +152,20 @@ ScimRails.configure do |config|
       }
     ]
   }
+
+  config.resource_user_schema = {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
+    id: "User",
+    name: "User",
+    endpoint: "/Users",
+    schema: "urn:ietf:params:scim:schemas:core:2.0:User"
+  }
+
+  config.resource_group_schema = {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
+    id: "Group",
+    name: "Group",
+    endpoint: "/Groups",
+    schema: "urn:ietf:params:scim:schemas:core:2.0:Group"
+  }
 end
