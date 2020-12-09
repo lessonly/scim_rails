@@ -11,7 +11,7 @@ module ScimRails
         object = {}
       end
 
-      ScimRails.config.after_scim_response.call(object, “RETRIEVED”) unless ScimRails.config.after_scim_response.nil?
+      ScimRails.config.after_scim_response.call(object, "RETRIEVED") unless ScimRails.config.after_scim_response.nil?
       
       json_schema_response(object)
     end
