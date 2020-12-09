@@ -34,6 +34,13 @@ module ScimRails
         content_type: CONTENT_TYPE
     end
 
+    def json_schema_response(object)
+      render \
+        json: object,
+        status: :ok,
+        content_type: CONTENT_TYPE
+    end
+
     def json_scim_group_response(object:, status: :ok, counts: nil)
       response = nil
       case params[:action]

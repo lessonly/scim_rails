@@ -168,4 +168,26 @@ ScimRails.configure do |config|
     endpoint: "/Groups",
     schema: "urn:ietf:params:scim:schemas:core:2.0:Group"
   }
+
+  config.retrievable_user_schema = {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Schema"],
+    id: "urn:ietf:params:scim:schemas:core:2.0:User",
+    name: "User",
+    attributes: [
+      {
+
+      }
+    ]
+  }
+
+  config.retrievable_group_schema = {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Schema"],
+    id: "urn:ietf:params:scim:schemas:core:2.0:Group",
+    name: "Group",
+    attributes: [
+      {
+        
+      }
+    ]
+  }
 end

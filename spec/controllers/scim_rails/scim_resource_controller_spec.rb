@@ -49,7 +49,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         expect(response.status).to eq(200)
       end
 
-      it "successfully returns the configuration of the app" do
+      it "successfully returns the resource schema of users" do
         get :resource_user
 
         expect(body.deep_symbolize_keys).to eq(ScimRails.config.resource_user_schema)
@@ -101,7 +101,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         expect(response.status).to eq(200)
       end
 
-      it "successfully returns the configuration of the app" do
+      it "successfully returns the resource schema of groups" do
         get :resource_group
 
         expect(body.deep_symbolize_keys).to eq(ScimRails.config.resource_group_schema)
