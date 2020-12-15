@@ -4,27 +4,14 @@ orbs:
 
 jobs:
   build:
+    environment:
+      CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
     docker:
       - image: circleci/ruby:2.6.3
     steps:
       - checkout
       - ruby/bundle-install
 
-
-          
-  test:  # our next job, called "test"
-    # we run "parallel job containers" to enable speeding up our tests;
-    # this splits our tests across multiple containers.
-    parallelism: 3 
-    # here we set TWO docker images.
-    docker:
-      - image: circleci/ruby:2.6.3
-
-    environment:
-      CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
-    steps:
-      - checkout 
-      - ruby/install-deps 
 
       - run:
           name: Setup dummy app
