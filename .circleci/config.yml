@@ -4,8 +4,6 @@ orbs:
 
 jobs:
   build:
-    environment:
-      CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
     docker:
       - image: circleci/ruby:2.6.3
     steps:
