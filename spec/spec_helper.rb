@@ -6,6 +6,10 @@ require 'factory_bot_rails'
 require 'byebug'
 require 'awesome_print'
 require 'faker'
+require 'simplecov'
+require 'simplecov_json_formatter'
+
+SimpleCov.start
 
 Rails.backtrace_cleaner.remove_silencers!
 
