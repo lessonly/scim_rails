@@ -1,0 +1,46 @@
+version: 2.1
+orbs:
+  ruby: circleci/ruby@0.1.2 
+
+jobs:
+  build:
+    docker:
+      - image: circleci/ruby:2.6.3
+    steps:
+      - checkout
+      - ruby/bundle-install
+
+
+          
+  test:  # our next job, called "test"
+    # we run "parallel job containers" to enable speeding up our tests;
+    # this splits our tests across multiple containers.
+    parallelism: 3 
+    # here we set TWO docker images.
+    docker:
+      - image: circleci/ruby:2.6.3
+
+    environment:
+      CC_TEST_REPORTER_ID: $CC_TEST_REPORTER_ID
+    steps:
+      - checkout 
+      - ruby/install-deps 
+
+      - run:
+          name: Setup dummy app
+          command:   cd spec/dummy && bin/setup
+      - run:
+          name: Setup Code Climate test-reporter
+          command: |
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+            chmod +x ./cc-test-reporter
+      - run:
+          name: Test report
+          command: cc-test-reporter before-build
+      - run:
+          name: Run tests
+          command: bundle exec rspec
+      - run:
+          name: Test report
+          command: |
+            cc-test-reporter after-build
