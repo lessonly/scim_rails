@@ -1,7 +1,7 @@
 module ScimRails
   class ScimSchemaController < ApplicationController
     def get_schema
-      ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
+      ScimRails.config.before_scim_response.call(request.params) if ScimRails.config.before_scim_response.respond_to?(:call)
 
       id = request.params.key?("format") ? "#{request.params[:id]}.#{request.params[:format]}" : request.params[:id]
 
@@ -13,7 +13,7 @@ module ScimRails
         object = {}
       end
 
-      ScimRails.config.after_scim_response.call(object, "RETRIEVED") unless ScimRails.config.after_scim_response.nil?
+      ScimRails.config.after_scim_response.call(object, "RETRIEVED") if ScimRails.config.after_scim_response.respond_to?(:call)
       
       json_schema_response(object)
     end
