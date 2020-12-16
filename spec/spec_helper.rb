@@ -9,9 +9,7 @@ require 'faker'
 require 'simplecov'
 require 'simplecov_json_formatter'
 
-SimpleCov.start do
-  enable_coverage :branch
-end
+SimpleCov.start
 
 Rails.backtrace_cleaner.remove_silencers!
 

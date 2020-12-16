@@ -31,6 +31,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "byebug"
   s.add_development_dependency "awesome_print"
   s.add_development_dependency "sqlite3", "~> 1.3.6"
-  s.add_development_dependency "simplecov", "> 0.18.0"
+  s.add_development_dependency "simplecov", "< 0.18.0"
   s.add_development_dependency "simplecov_json_formatter"
 end
