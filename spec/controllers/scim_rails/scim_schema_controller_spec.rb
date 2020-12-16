@@ -60,6 +60,40 @@ module ScimRails
   
           expect(body.deep_symbolize_keys).to eq(ScimRails.config.retrievable_group_schema)
         end
+
+        context "when before_scim_response is defined" do
+          before do
+            ScimRails.config.before_scim_response = lambda do |body|
+              print "#{body}"
+            end
+          end
+
+          after do
+            ScimRails.config.before_scim_response = nil
+          end
+
+          it "successfully calls before_scim_response" do
+            get :get_schema, params: { id: 1 }
+
+            expect{ get :get_schema, params: { id: 1 } }.to output("#{request.params}").to_stdout
+          end
+        end
+
+        context "when after_scim_response is defined" do
+          before do
+            ScimRails.config.after_scim_response = lambda do |object, status|
+              print "#{object} #{status}"
+            end
+          end
+
+          after do
+            ScimRails.config.after_scim_response = nil
+          end
+
+          it "successfully calls after_scim_response" do
+            expect{ get :get_schema, params: { id: 1 } }.to output("#{{}} RETRIEVED").to_stdout
+          end
+        end
       end
     end
   end
