@@ -70,7 +70,7 @@ RSpec.describe ScimRails::ScimServiceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          expect{ get :configuration }.to change{ counter.count }.from(0).to(1)
+          expect{ get :configuration }.to change{ counter.before_called }.from(0).to(1)
         end
       end
 
@@ -86,7 +86,7 @@ RSpec.describe ScimRails::ScimServiceController, type: :controller do
         end
 
         it "successfully calls after_scim_response" do
-          expect{ get :configuration }.to change{ counter.count }.from(0).to(2)
+          expect{ get :configuration }.to change{ counter.after_called }.from(0).to(1)
         end
       end
     end

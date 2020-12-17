@@ -70,7 +70,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          expect{ get :resource_user }.to change{ counter.count }.from(0).to(1)  
+          expect{ get :resource_user }.to change{ counter.before_called }.from(0).to(1)  
         end
       end
 
@@ -85,8 +85,8 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
           ScimRails.config.after_scim_response = nil
         end
 
-        it "successfully calls before_scim_response" do
-          expect{ get :resource_user }.to change{ counter.count }.from(0).to(2)  
+        it "successfully calls after_scim_response" do
+          expect{ get :resource_user }.to change{ counter.after_called }.from(0).to(1) 
         end
       end
     end
@@ -154,7 +154,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          expect{ get :resource_group }.to change{ counter.count }.from(0).to(1)
+          expect{ get :resource_group }.to change{ counter.before_called }.from(0).to(1)
         end
       end
 
@@ -170,7 +170,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          expect{ get :resource_group }.to change{ counter.count }.from(0).to(2)
+          expect{ get :resource_group }.to change{ counter.after_called }.from(0).to(1)
         end
       end
     end

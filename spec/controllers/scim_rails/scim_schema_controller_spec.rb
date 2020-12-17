@@ -77,7 +77,7 @@ module ScimRails
           end
 
           it "successfully calls before_scim_response" do
-            expect{ get :get_schema, params: { id: 1 } }.to change{ counter.count }.from(0).to(1)
+            expect{ get :get_schema, params: { id: 1 } }.to change{ counter.before_called }.from(0).to(1)
           end
         end
 
@@ -93,7 +93,7 @@ module ScimRails
           end
 
           it "successfully calls after_scim_response" do
-            expect{ get :get_schema, params: { id: 1 } }.to change{ counter.count }.from(0).to(2)
+            expect{ get :get_schema, params: { id: 1 } }.to change{ counter.after_called }.from(0).to(1)
           end
         end
       end
