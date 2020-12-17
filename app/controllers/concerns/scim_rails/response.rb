@@ -20,11 +20,24 @@ module ScimRails
       when "delete"
         head status
         return
+      when "configuration"
+        response = ScimRails.config.config_schema
+      when "resource_user"
+        response = ScimRails.config.resource_user_schema
+      when "resource_group"
+        response = ScimRails.config.resource_group_schema
       end
 
       render \
         json: response,
         status: status,
+        content_type: CONTENT_TYPE
+    end
+
+    def json_schema_response(object)
+      render \
+        json: object,
+        status: :ok,
         content_type: CONTENT_TYPE
     end
 

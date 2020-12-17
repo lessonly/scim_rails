@@ -47,6 +47,11 @@ module ScimRails
       :before_scim_response,
       :after_scim_response,
       :scim_attribute_type_mappings,
+      :config_schema,
+      :resource_user_schema,
+      :resource_group_schema,
+      :retrievable_user_schema,
+      :retrievable_group_schema
 
     def initialize
       @basic_auth_model = "Company"
