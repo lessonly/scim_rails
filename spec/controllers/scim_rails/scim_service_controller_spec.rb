@@ -2,6 +2,7 @@ require "spec_helper"
 
 RSpec.describe ScimRails::ScimServiceController, type: :controller do
   include AuthHelper
+  include CallbackHelper
 
   routes { ScimRails::Engine.routes }
 
@@ -33,6 +34,8 @@ RSpec.describe ScimRails::ScimServiceController, type: :controller do
     context "when authorized" do
       let(:body) { JSON.parse(response.body) }
 
+      let!(:counter) { CallbackHelper::CallbackCounter.new }
+
       before :each do
         http_login(company)
       end
@@ -58,7 +61,7 @@ RSpec.describe ScimRails::ScimServiceController, type: :controller do
       context "when before_scim_response is defined" do
         before do
           ScimRails.config.before_scim_response = lambda do |body|
-            print "#{body}"
+            counter.before.call
           end
         end
 
@@ -67,16 +70,14 @@ RSpec.describe ScimRails::ScimServiceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          get :configuration
-
-          expect{ get :configuration }.to output("#{request.params}").to_stdout
+          expect{ get :configuration }.to change{ counter.count }.from(0).to(1)
         end
       end
 
       context "when after_scim_response is defined" do
         before do
           ScimRails.config.after_scim_response = lambda do |object, status|
-            print "#{object} #{status}"
+            counter.after.call
           end
         end
 
@@ -85,7 +86,7 @@ RSpec.describe ScimRails::ScimServiceController, type: :controller do
         end
 
         it "successfully calls after_scim_response" do
-          expect{ get :configuration }.to output("#{ScimRails.config.config_schema} RETRIEVED").to_stdout
+          expect{ get :configuration }.to change{ counter.count }.from(0).to(2)
         end
       end
     end

@@ -2,6 +2,9 @@ require "spec_helper"
 
 RSpec.describe ScimRails::ScimResourceController, type: :controller do
   include AuthHelper
+  include CallbackHelper
+
+  let!(:counter) { CallbackHelper::CallbackCounter.new }
 
   routes { ScimRails::Engine.routes }
 
@@ -58,7 +61,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
       context "when before_scim_response is defined" do
         before do
           ScimRails.config.before_scim_response = lambda do |body|
-            print "#{body}"
+            counter.before.call
           end
         end
 
@@ -67,16 +70,14 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          get :resource_user
-
-          expect{ get :resource_user }.to output("#{request.params}").to_stdout
+          expect{ get :resource_user }.to change{ counter.count }.from(0).to(1)  
         end
       end
 
       context "when after_scim_response is defined" do
         before do
           ScimRails.config.after_scim_response = lambda do |object, status|
-            print "#{object} #{status}"
+            counter.after.call
           end
         end
 
@@ -85,9 +86,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          get :resource_user
-
-          expect{ get :resource_user }.to output("#{ScimRails.config.resource_user_schema} RETRIEVED").to_stdout
+          expect{ get :resource_user }.to change{ counter.count }.from(0).to(2)  
         end
       end
     end
@@ -146,7 +145,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
       context "when before_scim_response is defined" do
         before do
           ScimRails.config.before_scim_response = lambda do |body|
-            print "#{body}"
+            counter.before.call
           end
         end
 
@@ -155,16 +154,14 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          get :resource_group
-
-          expect{ get :resource_group }.to output("#{request.params}").to_stdout
+          expect{ get :resource_group }.to change{ counter.count }.from(0).to(1)
         end
       end
 
       context "when after_scim_response is defined" do
         before do
           ScimRails.config.after_scim_response = lambda do |object, status|
-            print "#{object} #{status}"
+            counter.after.call
           end
         end
 
@@ -173,7 +170,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
         end
 
         it "successfully calls before_scim_response" do
-          expect{ get :resource_group }.to output("#{ScimRails.config.resource_group_schema} RETRIEVED").to_stdout
+          expect{ get :resource_group }.to change{ counter.count }.from(0).to(2)
         end
       end
     end
