@@ -1,5 +1,9 @@
 # Upcoming Release
 
+# v0.4.0 26-03-2021
+
+- [Rail 6.1 is now supported](https://github.com/lessonly/scim_rails/pull/41)
+
 # v0.3.1 8-06-2020
 
 - [Any unhandled error is now logged](https://github.com/lessonly/scim_rails/pull/27
