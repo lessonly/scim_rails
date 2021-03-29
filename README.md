@@ -300,5 +300,15 @@ Specs can be run with `rspec` at the top level of the project (if you run `rspec
 
 All specs should be passing. (The dummy app will need to be setup first.)
 
+## Current Maintainers
+
+Maintainers:
+- Are active contributors
+- Help set project direction
+- Merge contributions from contributors
+
+- [@wernull](https://github.com/wernull)
+- [@rreinhardt9](https://github.com/rreinhardt9)
+
 ## License
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
