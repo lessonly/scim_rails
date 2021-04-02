@@ -14,6 +14,7 @@ module ScimRails
       company = find_company
       authorize(company)
       company
+      puts "string with double quotes testing"
     end
 
     private
