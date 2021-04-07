@@ -347,6 +347,24 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(company.users.count).to eq 1
       end
 
+      it 'returns 201 if the user has a default_scope attribute' do
+        create(:user, email: "new@example.com", company: company, scoped_attribute: false)
+        post :create, params: {
+          name: {
+            givenName: "Not New",
+            familyName: "User"
+          },
+          emails: [
+            {
+              value: "new@example.com"
+            }
+          ]
+        }
+        expect(response.status).to eq 201
+        expect(User.unscoped.where(company: company).count).to eq 1
+        expect(User.unscoped.where(company: company).first.first_name).to eq "Not New"
+      end
+
       it "creates and archives inactive user" do
         post :create, params: {
           id: 1,

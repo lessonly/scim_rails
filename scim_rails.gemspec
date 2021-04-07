@@ -33,4 +33,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "sqlite3", "~> 1.3.6"
   s.add_development_dependency "simplecov", "< 0.18.0"
   s.add_development_dependency "simplecov_json_formatter"
+  s.add_development_dependency 'mime-types', '~> 3.2.2'
+  s.add_development_dependency 'mime-types-data'
+  s.add_development_dependency 'mimemagic', '~> 0.3.0'
 end

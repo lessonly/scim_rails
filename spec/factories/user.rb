@@ -7,6 +7,7 @@ FactoryBot.define do
     sequence(:email) { |n| "#{n}@example.com" }
     
     test_attribute { Faker::Games::Pokemon.name }
+    scoped_attribute { true }
     alternate_email { Faker::Internet.email }
   end
 end
