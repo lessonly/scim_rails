@@ -33,12 +33,12 @@ module ScimRails
       if ScimRails.config.scim_group_prevent_update_on_create
         group = @company.public_send(ScimRails.config.scim_groups_scope).create!(group_attributes)
       else
-        username_key = ScimRails.config.queryable_group_attributes[:userName]
-        find_by_username = {}
-        find_by_username[username_key] = group_attributes[username_key]
+        display_name_key = ScimRails.config.queryable_group_attributes[:displayName]
+        find_by_display_name = {}
+        find_by_display_name[display_name_key] = group_attributes[display_name_key]
         group = @company
           .public_send(ScimRails.config.scim_groups_scope)
-          .find_or_create_by(find_by_username)
+          .find_or_create_by(find_by_display_name)
         group.update!(group_attributes)
       end
 
