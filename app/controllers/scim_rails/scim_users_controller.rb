@@ -40,12 +40,14 @@ module ScimRails
       else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
 
-        find_by_username = Hash.new
+        find_by_params = Hash.new
 
-        find_by_username[username_key] = user_params[username_key]
-        user = @company
-          .public_send(ScimRails.config.scim_users_scope)
-          .find_or_create_by(find_by_username)
+        find_by_params[username_key] = user_params[username_key]
+        find_by_params[ScimRails.config.basic_auth_model.to_s.underscore] = @company
+
+        user = ScimRails.config.scim_users_model
+          .unscoped # Specific to our use case and should be changed back after we remove the default_scope from our "User" model
+          .find_or_initialize_by(find_by_params)
         user.update!(user_params)
       end
       update_status(user) unless params[:active].nil?
