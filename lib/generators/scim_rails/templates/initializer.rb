@@ -152,4 +152,8 @@ ScimRails.configure do |config|
     value: :id,
     display: :name
   }
+
+  # Set group_destroy_method to a method on the Group model
+  # to be called on a destroy request
+  # config.group_destroy_method = :destroy!
 end

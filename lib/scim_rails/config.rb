@@ -44,7 +44,8 @@ module ScimRails
       :user_deprovision_method,
       :user_reprovision_method,
       :user_schema,
-      :group_schema
+      :group_schema,
+      :group_destroy_method
 
     def initialize
       @basic_auth_model = "Company"
