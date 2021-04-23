@@ -1,8 +1,12 @@
+# frozen_string_literal: true
+
 module ScimRails
   class ScimUsersController < ScimRails::ApplicationController
     def index
       if params[:filter].present?
-        query = ScimRails::ScimQueryParser.new(params[:filter])
+        query = ScimRails::ScimQueryParser.new(
+          params[:filter], ScimRails.config.queryable_user_attributes
+        )
 
         users = @company
           .public_send(ScimRails.config.scim_users_scope)
@@ -31,7 +35,7 @@ module ScimRails
         user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_user_params)
       else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
-        find_by_username = Hash.new
+        find_by_username = {}
         find_by_username[username_key] = permitted_user_params[username_key]
         user = @company
           .public_send(ScimRails.config.scim_users_scope)
@@ -70,36 +74,8 @@ module ScimRails
       end
     end
 
-    def find_value_for(attribute)
-      params.dig(*path_for(attribute))
-    end
-
-    # `path_for` is a recursive method used to find the "path" for
-    # `.dig` to take when looking for a given attribute in the
-    # params.
-    #
-    # Example: `path_for(:name)` should return an array that looks
-    # like [:names, 0, :givenName]. `.dig` can then use that path
-    # against the params to translate the :name attribute to "John".
-
-    def path_for(attribute, object = ScimRails.config.mutable_user_attributes_schema, path = [])
-      at_path = path.empty? ? object : object.dig(*path)
-      return path if at_path == attribute
-
-      case at_path
-      when Hash
-        at_path.each do |key, value|
-          found_path = path_for(attribute, object, [*path, key])
-          return found_path if found_path
-        end
-        nil
-      when Array
-        at_path.each_with_index do |value, index|
-          found_path = path_for(attribute, object, [*path, index])
-          return found_path if found_path
-        end
-        nil
-      end
+    def controller_schema
+      ScimRails.config.mutable_user_attributes_schema
     end
 
     def update_status(user)

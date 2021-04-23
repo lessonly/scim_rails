@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ScimRails.configure do |config|
   # Model used for authenticating and scoping users.
   config.basic_auth_model = "Company"
@@ -21,6 +23,12 @@ ScimRails.configure do |config|
   # Determine whether the create endpoint updates users that already exist
   # or throws an error (returning 409 Conflict in accordance with SCIM spec)
   config.scim_user_prevent_update_on_create = false
+
+  # Model used for group records.
+  config.scim_groups_model = "Group"
+  # Method used for retrieving user records from the
+  # authenticatable model.
+  config.scim_groups_scope = :groups
 
   # Cryptographic algorithm used for signing the auth tokens.
   # It supports all algorithms supported by the jwt gem.
@@ -101,8 +109,58 @@ ScimRails.configure do |config|
     emails: [
       {
         value: :email
-      },
+      }
     ],
     active: :active?
   }
+
+  # Schema for users used in "abbreviated" lists such as in
+  # the `members` field of a Group.
+  config.user_abbreviated_schema = {
+    value: :id,
+    display: :email
+  }
+
+  # Allow filtering Groups based on these parameters
+  config.queryable_group_attributes = {
+    displayName: :name
+  }
+
+  # List of attributes on a Group that can be updated through SCIM
+  config.mutable_group_attributes = [
+    :name
+  ]
+
+  # Hash of mutable Group attributes. This object is the map
+  # for this Gem to figure out where to look in a SCIM
+  # response for mutable values. This object should
+  # include all attributes listed in
+  # config.mutable_group_attributes.
+  config.mutable_group_attributes_schema = {
+    displayName: :name
+  }
+
+  # The User relation's IDs field name on the Group model.
+  # Eg. if the relation is `has_many :users` this will be :user_ids
+  config.group_member_relation_attribute = :user_ids
+  # Which fields from the request's `members` field should be
+  # assigned to the relation IDs field. Should include the field
+  # set in config.group_member_relation_attribute.
+  config.group_member_relation_schema = { value: :user_ids }
+
+  config.group_schema = {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Group"],
+    id: :id,
+    displayName: :name,
+    members: :users
+  }
+
+  config.group_abbreviated_schema = {
+    value: :id,
+    display: :name
+  }
+
+  # Set group_destroy_method to a method on the Group model
+  # to be called on a destroy request
+  # config.group_destroy_method = :destroy!
 end

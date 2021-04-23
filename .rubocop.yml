@@ -1,2 +1,8 @@
 inherit_from:
   - https://raw.githubusercontent.com/lessonly/rubocop-default-configuration/master/.rubocop.yml
+
+Metrics/BlockLength:
+  # don't warn about block length in block-centered DSLs
+  Exclude:
+    - 'config/routes.rb'
+    - 'spec/**/*.rb'

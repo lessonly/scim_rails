@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 RSpec.describe ScimRails::ScimUsersController, type: :controller do
@@ -22,7 +24,9 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env["HTTP_AUTHORIZATION"] =
+          ActionController::HttpAuthentication::Basic
+          .encode_credentials("unauthorized", "123456")
 
         get :index, as: :json
 
@@ -71,7 +75,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
         get :index, params: {
           startIndex: 101,
-          count: 200,
+          count: 200
         }, as: :json
         response_body = JSON.parse(response.body)
         expect(response_body["totalResults"]).to eq 400
@@ -87,7 +91,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
 
         get :index, params: {
           startIndex: 1,
-          count: 10,
+          count: 10
         }, as: :json
         response_body = JSON.parse(response.body)
         expect(response_body["totalResults"]).to eq 400
@@ -139,7 +143,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     end
   end
 
-
   describe "show" do
     let(:company) { create(:company) }
 
@@ -157,7 +160,9 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env["HTTP_AUTHORIZATION"] =
+          ActionController::HttpAuthentication::Basic
+          .encode_credentials("unauthorized", "123456")
 
         get :show, params: { id: 1 }, as: :json
 
@@ -200,7 +205,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
     end
   end
 
-
   describe "create" do
     let(:company) { create(:company) }
 
@@ -218,7 +222,9 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env["HTTP_AUTHORIZATION"] =
+          ActionController::HttpAuthentication::Basic
+          .encode_credentials("unauthorized", "123456")
 
         post :create, as: :json
 
@@ -356,7 +362,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           emails: [
             {
               value: "test@example.com"
-            },
+            }
           ],
           active: "false"
         }, as: :json
@@ -368,7 +374,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
     end
   end
-
 
   describe "put update" do
     let(:company) { create(:company) }
@@ -387,7 +392,9 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env["HTTP_AUTHORIZATION"] =
+          ActionController::HttpAuthentication::Basic
+          .encode_credentials("unauthorized", "123456")
 
         put :put_update, params: { id: 1 }, as: :json
 
@@ -433,7 +440,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "returns :not_found for id that cannot be found" do
-        get :put_update, params: { id: "fake_id" }, as: :json
+        put :put_update, params: { id: "fake_id" }, as: :json
 
         expect(response.status).to eq 404
       end
@@ -442,7 +449,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         new_company = create(:company)
         create(:user, company: new_company, id: 1000)
 
-        get :put_update, params: { id: 1000 }, as: :json
+        put :put_update, params: { id: 1000 }, as: :json
 
         expect(response.status).to eq 404
       end
@@ -454,7 +461,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           emails: [
             {
               value: "test@example.com"
-            },
+            }
           ],
           active: "true"
         }, as: :json
@@ -463,7 +470,6 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
     end
   end
-
 
   describe "patch update" do
     let(:company) { create(:company) }
@@ -482,7 +488,9 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env["HTTP_AUTHORIZATION"] =
+          ActionController::HttpAuthentication::Basic
+          .encode_credentials("unauthorized", "123456")
 
         patch :patch_update, params: patch_params(id: 1), as: :json
 
@@ -542,7 +550,10 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         user = company.users.first.tap(&:archive!)
         expect(user.archived?).to eq true
 
-        patch :patch_update, params: patch_params(id: 1,  active: true), as: :json
+        patch \
+          :patch_update,
+          params: patch_params(id: 1, active: true),
+          as: :json
 
         expect(response.status).to eq 200
         expect(company.users.count).to eq 1
@@ -662,7 +673,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       emails: [
         {
           value: "test@example.com"
-        },
+        }
       ],
       active: active
     }
