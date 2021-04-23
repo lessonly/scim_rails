@@ -11,6 +11,9 @@ module ScimRails
     class UnsupportedPatchRequest < StandardError
     end
 
+    class UnsupportedDeleteRequest < StandardError
+    end
+
     included do
       if Rails.env.production?
         rescue_from StandardError do |exception|
@@ -62,6 +65,17 @@ module ScimRails
             status: "422"
           },
           :unprocessable_entity
+        )
+      end
+
+      rescue_from ScimRails::ExceptionHandler::UnsupportedDeleteRequest do
+        json_response(
+          {
+            schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+            detail: "Delete operation is disabled for the requested resource.",
+            status: "501"
+          },
+          :not_implemented
         )
       end
 
