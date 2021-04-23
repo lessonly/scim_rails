@@ -2,7 +2,9 @@ module ScimRails
   class ScimGroupsController < ScimRails::ApplicationController
     def index
       if params[:filter].present?
-        query = ScimRails::ScimQueryParser.new(params[:filter])
+        query = ScimRails::ScimQueryParser.new(
+          params[:filter], ScimRails.config.queryable_group_attributes
+        )
 
         groups = @company
           .public_send(ScimRails.config.scim_groups_scope)
@@ -52,15 +54,17 @@ module ScimRails
       end
       group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
       group.public_send(ScimRails.config.group_destroy_method)
-      json_response(nil, :no_content)
+      head :no_content
     end
 
     private
 
     def permitted_group_params
-      ScimRails.config.mutable_group_attributes.each.with_object({}) do |attribute, hash|
+      converted = ScimRails.config.mutable_group_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = find_value_for(attribute)
-      end.merge(
+      end
+      return converted unless params[:members]
+      converted.merge(
         ScimRails.config.group_member_relation_attribute =>
           params[:members].map do |member|
             member[ScimRails.config.group_member_relation_schema.keys.first]

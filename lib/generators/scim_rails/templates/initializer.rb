@@ -119,6 +119,11 @@ ScimRails.configure do |config|
     display: :email
   }
 
+  # Allow filtering Groups based on these parameters
+  config.queryable_group_attributes = {
+    displayName: :name
+  }
+
   # List of attributes on a Group that can be updated through SCIM
   config.mutable_group_attributes = [
     :name

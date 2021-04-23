@@ -27,6 +27,7 @@ module ScimRails
       :mutable_user_attributes,
       :on_error,
       :queryable_user_attributes,
+      :queryable_group_attributes,
       :scim_users_list_order,
       :scim_users_scope,
       :scim_user_prevent_update_on_create,

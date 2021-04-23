@@ -1,9 +1,10 @@
 module ScimRails
   class ScimQueryParser
-    attr_accessor :query_elements
+    attr_accessor :query_elements, :query_attributes
 
-    def initialize(query_string)
+    def initialize(query_string, queryable_attributes)
       self.query_elements = query_string.split(" ")
+      self.query_attributes = queryable_attributes
     end
 
     def attribute
@@ -11,7 +12,7 @@ module ScimRails
       raise ScimRails::ExceptionHandler::InvalidQuery if attribute.blank?
       attribute = attribute.to_sym
 
-      mapped_attribute = attribute_mapping(attribute)
+      mapped_attribute = query_attributes[attribute]
       raise ScimRails::ExceptionHandler::InvalidQuery if mapped_attribute.blank?
       mapped_attribute
     end
@@ -27,10 +28,6 @@ module ScimRails
     end
 
     private
-
-    def attribute_mapping(attribute)
-      ScimRails.config.queryable_user_attributes[attribute]
-    end
 
     def sql_comparison_operator(element)
       case element
