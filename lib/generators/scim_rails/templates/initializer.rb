@@ -23,7 +23,7 @@ ScimRails.configure do |config|
   config.scim_user_prevent_update_on_create = false
 
   # Model used for group records.
-  config.scim_groups_model = 'Group'
+  config.scim_groups_model = "Group"
   # Method used for retrieving user records from the
   # authenticatable model.
   config.scim_groups_scope = :groups

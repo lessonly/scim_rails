@@ -49,16 +49,15 @@ module ScimRails
     end
 
     def object_response(object)
-      schema =
-        case object
-        when ScimRails.config.scim_users_model
-          ScimRails.config.user_schema
-        when ScimRails.config.scim_groups_model
-          ScimRails.config.group_schema
-        else
-          raise ScimRails::ExceptionHandler::InvalidQuery,
-                "Unknown model: #{object}"
-        end
+      schema = case object
+               when ScimRails.config.scim_users_model
+                 ScimRails.config.user_schema
+               when ScimRails.config.scim_groups_model
+                 ScimRails.config.group_schema
+               else
+                 raise ScimRails::ExceptionHandler::InvalidQuery,
+                       "Unknown model: #{object}"
+               end
       find_value(object, schema)
     end
 
@@ -85,11 +84,7 @@ module ScimRails
       when ScimRails.config.scim_groups_model
         find_value(schema, ScimRails.config.group_abbreviated_schema)
       when Symbol
-        value = object.public_send(schema)
-        case value
-        when true, false, String, Integer, DateTime then value
-        else find_value(object, value)
-        end
+        find_value(object, object.public_send(schema))
       else
         schema
       end

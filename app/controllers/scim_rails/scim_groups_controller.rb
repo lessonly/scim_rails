@@ -30,7 +30,9 @@ module ScimRails
     end
 
     def show
-      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+      group = @company
+        .public_send(ScimRails.config.scim_groups_scope)
+        .find(params[:id])
       json_scim_response(object: group)
     end
 
@@ -43,7 +45,9 @@ module ScimRails
     end
 
     def put_update
-      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+      group = @company
+        .public_send(ScimRails.config.scim_groups_scope)
+        .find(params[:id])
       group.update!(permitted_group_params)
       json_scim_response(object: group)
     end
@@ -52,7 +56,9 @@ module ScimRails
       unless ScimRails.config.group_destroy_method
         raise ScimRails::ExceptionHandler::UnsupportedDeleteRequest
       end
-      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+      group = @company
+        .public_send(ScimRails.config.scim_groups_scope)
+        .find(params[:id])
       group.public_send(ScimRails.config.group_destroy_method)
       head :no_content
     end
@@ -60,16 +66,24 @@ module ScimRails
     private
 
     def permitted_group_params
-      converted = ScimRails.config.mutable_group_attributes.each.with_object({}) do |attribute, hash|
+      converted = mutable_attributes.each.with_object({}) do |attribute, hash|
         hash[attribute] = find_value_for(attribute)
       end
       return converted unless params[:members]
-      converted.merge(
+      converted.merge(member_params)
+    end
+
+    def member_params
+      {
         ScimRails.config.group_member_relation_attribute =>
           params[:members].map do |member|
             member[ScimRails.config.group_member_relation_schema.keys.first]
           end
-      )
+      }
+    end
+
+    def mutable_attributes
+      ScimRails.config.mutable_group_attributes
     end
 
     def controller_schema

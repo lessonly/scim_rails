@@ -19,7 +19,8 @@ module ScimRails
       :basic_auth_model,
       :mutable_user_attributes_schema,
       :mutable_group_attributes_schema,
-      :scim_users_model
+      :scim_users_model,
+      :scim_groups_model
 
     attr_accessor \
       :basic_auth_model_authenticatable_attribute,
@@ -33,7 +34,6 @@ module ScimRails
       :scim_user_prevent_update_on_create,
       :mutable_group_attributes,
       :scim_groups_list_order,
-      :scim_groups_model,
       :scim_groups_scope,
       :group_member_relation_attribute,
       :group_member_relation_schema,
@@ -53,7 +53,7 @@ module ScimRails
       @scim_users_list_order = :id
       @scim_users_model = "User"
       @scim_groups_list_order = :id
-      @scim_groups_model = 'Group'
+      @scim_groups_model = "Group"
       @signing_algorithm = ALGO_NONE
       @user_schema = {}
       @user_attributes = []

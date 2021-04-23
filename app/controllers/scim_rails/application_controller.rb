@@ -53,13 +53,13 @@ module ScimRails
 
       case at_path
       when Hash
-        at_path.each do |key, value|
+        at_path.each do |key, _value|
           found_path = path_for(attribute, object, [*path, key])
           return found_path if found_path
         end
         nil
       when Array
-        at_path.each_with_index do |value, index|
+        at_path.each_with_index do |_value, index|
           found_path = path_for(attribute, object, [*path, index])
           return found_path if found_path
         end

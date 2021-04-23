@@ -22,7 +22,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env["HTTP_AUTHORIZATION"] =
+          ActionController::HttpAuthentication::Basic
+          .encode_credentials("unauthorized", "123456")
 
         get :index, as: :json
 
@@ -145,7 +147,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env['HTTP_AUTHORIZATION'] =
+          ActionController::HttpAuthentication::Basic
+          .encode_credentials("unauthorized", "123456")
 
         get :show, params: { id: 1 }, as: :json
 
@@ -392,7 +396,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env['HTTP_AUTHORIZATION'] =
+          ActionController::HttpAuthentication::Basic
+          .encode_credentials("unauthorized", "123456")
 
         delete :destroy, params: { id: 1 }, as: :json
 
@@ -409,7 +415,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
 
       context "when Group destroy method is configured" do
         before do
-          allow(ScimRails.config).to receive(:group_destroy_method).and_return(:destroy!)
+          allow(ScimRails.config).to(
+            receive(:group_destroy_method).and_return(:destroy!)
+          )
         end
 
         it "returns empty response" do
@@ -450,7 +458,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
 
       context "when Group destroy method is not configured" do
         it "does not delete Group" do
-          allow(ScimRails.config).to receive(:group_destroy_method).and_return(nil)
+          allow(ScimRails.config).to(
+            receive(:group_destroy_method).and_return(nil)
+          )
 
           expect do
             delete :destroy, params: { id: 1 }, as: :json
