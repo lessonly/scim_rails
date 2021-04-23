@@ -433,7 +433,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       end
 
       it "returns :not_found for id that cannot be found" do
-        get :put_update, params: { id: "fake_id" }, as: :json
+        put :put_update, params: { id: "fake_id" }, as: :json
 
         expect(response.status).to eq 404
       end
@@ -442,7 +442,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         new_company = create(:company)
         create(:user, company: new_company, id: 1000)
 
-        get :put_update, params: { id: 1000 }, as: :json
+        put :put_update, params: { id: 1000 }, as: :json
 
         expect(response.status).to eq 404
       end
