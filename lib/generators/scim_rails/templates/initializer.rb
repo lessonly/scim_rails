@@ -40,6 +40,10 @@ ScimRails.configure do |config|
   # For example, [:created_at, :id] or { created_at: :desc }.
   # config.scim_users_list_order = :id
 
+  # This logger will be used to log every incoming SCIM request
+  # using its `info` method. Customize this for audit purposes if needed.
+  # config.audit_logger = Logger.new
+
   # Method called on user model to deprovision a user.
   config.user_deprovision_method = :archive!
 
