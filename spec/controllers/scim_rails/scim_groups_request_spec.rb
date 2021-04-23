@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 RSpec.describe ScimRails::ScimGroupsController, type: :request do
   let(:company) { create(:company) }
-  let(:credentials) { Base64::encode64("#{company.subdomain}:#{company.api_token}") }
+  let(:credentials) { Base64.encode64("#{company.subdomain}:#{company.api_token}") }
   let(:authorization) { "Basic #{credentials}" }
 
   def post_request(content_type = "application/scim+json")
@@ -12,8 +14,8 @@ RSpec.describe ScimRails::ScimGroupsController, type: :request do
            members: []
          }.to_json,
          headers: {
-           'Authorization': authorization,
-           'Content-Type': content_type,
+           Authorization: authorization,
+           'Content-Type': content_type
          }
   end
 

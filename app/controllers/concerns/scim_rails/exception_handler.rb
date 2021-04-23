@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ScimRails
   module ExceptionHandler
     extend ActiveSupport::Concern

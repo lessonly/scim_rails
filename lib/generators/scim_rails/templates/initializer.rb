@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ScimRails.configure do |config|
   # Model used for authenticating and scoping users.
   config.basic_auth_model = "Company"
@@ -107,7 +109,7 @@ ScimRails.configure do |config|
     emails: [
       {
         value: :email
-      },
+      }
     ],
     active: :active?
   }

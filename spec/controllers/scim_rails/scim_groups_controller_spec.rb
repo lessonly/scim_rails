@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "spec_helper"
 
 RSpec.describe ScimRails::ScimGroupsController, type: :controller do
@@ -24,7 +26,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-          .encode_credentials("unauthorized", "123456")
+            .encode_credentials("unauthorized", "123456")
 
         get :index, as: :json
 
@@ -54,7 +56,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
 
         get :index, as: :json
         response_body = JSON.parse(response.body)
-        expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+        expect(response_body.dig("schemas", 0)).to(
+          eq "urn:ietf:params:scim:api:messages:2.0:ListResponse"
+        )
         expect(response_body["totalResults"]).to eq 5
       end
 
@@ -73,7 +77,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
 
         get :index, params: {
           startIndex: 101,
-          count: 200,
+          count: 200
         }, as: :json
         response_body = JSON.parse(response.body)
         expect(response_body["totalResults"]).to eq 400
@@ -82,14 +86,16 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       end
 
       it "paginates results by configurable scim_groups_list_order" do
-        allow(ScimRails.config).to receive(:scim_groups_list_order).and_return({ created_at: :desc })
+        allow(ScimRails.config).to(
+          receive(:scim_groups_list_order).and_return(created_at: :desc)
+        )
 
         create_list(:group, 400, company: company)
         expect(company.groups.first.id).to eq 1
 
         get :index, params: {
           startIndex: 1,
-          count: 10,
+          count: 10
         }, as: :json
         response_body = JSON.parse(response.body)
         expect(response_body["totalResults"]).to eq 400
@@ -125,7 +131,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         }, as: :json
         expect(response.status).to eq 400
         response_body = JSON.parse(response.body)
-        expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
+        expect(response_body.dig("schemas", 0)).to(
+          eq "urn:ietf:params:scim:api:messages:2.0:Error"
+        )
       end
     end
   end
@@ -147,9 +155,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] =
+        request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-          .encode_credentials("unauthorized", "123456")
+            .encode_credentials("unauthorized", "123456")
 
         get :show, params: { id: 1 }, as: :json
 
@@ -209,7 +217,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env["HTTP_AUTHORIZATION"] =
+          ActionController::HttpAuthentication::Basic
+            .encode_credentials("unauthorized", "123456")
 
         post :create, as: :json
 
@@ -315,7 +325,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] = ActionController::HttpAuthentication::Basic.encode_credentials("unauthorized","123456")
+        request.env["HTTP_AUTHORIZATION"] =
+          ActionController::HttpAuthentication::Basic
+            .encode_credentials("unauthorized", "123456")
 
         put :put_update, params: { id: 1 }, as: :json
 
@@ -396,9 +408,9 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       end
 
       it "fails with invalid credentials" do
-        request.env['HTTP_AUTHORIZATION'] =
+        request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-          .encode_credentials("unauthorized", "123456")
+            .encode_credentials("unauthorized", "123456")
 
         delete :destroy, params: { id: 1 }, as: :json
 

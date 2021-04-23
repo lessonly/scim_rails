@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ScimRails
   class ScimUsersController < ScimRails::ApplicationController
     def index
@@ -33,7 +35,7 @@ module ScimRails
         user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_user_params)
       else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
-        find_by_username = Hash.new
+        find_by_username = {}
         find_by_username[username_key] = permitted_user_params[username_key]
         user = @company
           .public_send(ScimRails.config.scim_users_scope)

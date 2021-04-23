@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ScimRails
   class ApplicationController < ActionController::API
     include ActionController::HttpAuthentication::Basic::ControllerMethods
@@ -28,7 +30,7 @@ module ScimRails
     end
 
     def authenticate_with_oauth_bearer
-      authentication_attribute = request.headers["Authorization"].split(" ").last
+      authentication_attribute = request.headers["Authorization"].split.last
       payload = ScimRails::Encoder.decode(authentication_attribute).with_indifferent_access
       searchable_attribute = payload[ScimRails.config.basic_auth_model_searchable_attribute]
 

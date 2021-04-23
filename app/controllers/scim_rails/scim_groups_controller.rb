@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ScimRails
   class ScimGroupsController < ScimRails::ApplicationController
     def index
@@ -70,6 +72,7 @@ module ScimRails
         hash[attribute] = find_value_for(attribute)
       end
       return converted unless params[:members]
+
       converted.merge(member_params)
     end
 
