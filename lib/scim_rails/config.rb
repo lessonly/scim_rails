@@ -16,6 +16,7 @@ module ScimRails
     ALGO_NONE = "none"
 
     attr_writer \
+      :audit_logger,
       :basic_auth_model,
       :mutable_user_attributes_schema,
       :scim_users_model
@@ -55,6 +56,13 @@ module ScimRails
 
     def scim_users_model
       @scim_users_model.constantize
+    end
+
+    def audit_logger
+      case @audit_logger
+      when String then @audit_logger.constantize
+      else @audit_logger
+      end
     end
   end
 end

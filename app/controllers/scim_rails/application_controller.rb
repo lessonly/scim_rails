@@ -5,8 +5,13 @@ module ScimRails
     include Response
 
     before_action :authorize_request
+    before_action :log_request, if: -> { ScimRails.config.audit_logger }
 
     private
+
+    def log_request
+      ScimRails.config.audit_logger.info request
+    end
 
     def authorize_request
       send(authentication_strategy) do |searchable_attribute, authentication_attribute|
