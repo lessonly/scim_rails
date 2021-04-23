@@ -46,6 +46,15 @@ module ScimRails
       json_scim_response(object: group)
     end
 
+    def destroy
+      unless ScimRails.config.group_destroy_method
+        raise ScimRails::ExceptionHandler::UnsupportedDeleteRequest
+      end
+      group = @company.public_send(ScimRails.config.scim_groups_scope).find(params[:id])
+      group.public_send(ScimRails.config.group_destroy_method)
+      json_response(nil, :no_content)
+    end
+
     private
 
     def permitted_group_params

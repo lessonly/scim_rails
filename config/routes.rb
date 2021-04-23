@@ -8,5 +8,5 @@ ScimRails::Engine.routes.draw do
   post   'scim/v2/Groups',     action: :create,        controller: 'scim_groups'
   get    'scim/v2/Groups/:id', action: :show,          controller: 'scim_groups'
   put    'scim/v2/Groups/:id', action: :put_update,    controller: 'scim_groups'
-
+  delete 'scim/v2/Groups/:id', action: :destroy,       controller: 'scim_groups'
 end
