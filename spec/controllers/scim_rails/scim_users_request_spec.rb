@@ -4,7 +4,9 @@ require "spec_helper"
 
 RSpec.describe ScimRails::ScimUsersController, type: :request do
   let(:company) { create(:company) }
-  let(:credentials) { Base64.encode64("#{company.subdomain}:#{company.api_token}") }
+  let(:credentials) do
+    Base64.encode64("#{company.subdomain}:#{company.api_token}")
+  end
   let(:authorization) { "Basic #{credentials}" }
 
   def post_request(content_type = "application/scim+json")

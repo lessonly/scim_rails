@@ -26,7 +26,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         get :index, as: :json
 
@@ -157,7 +157,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         get :show, params: { id: 1 }, as: :json
 
@@ -219,7 +219,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         post :create, as: :json
 
@@ -327,7 +327,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         put :put_update, params: { id: 1 }, as: :json
 
@@ -410,7 +410,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         delete :destroy, params: { id: 1 }, as: :json
 

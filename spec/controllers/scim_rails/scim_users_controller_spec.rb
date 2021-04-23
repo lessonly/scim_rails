@@ -26,7 +26,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         get :index, as: :json
 
@@ -162,7 +162,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         get :show, params: { id: 1 }, as: :json
 
@@ -224,7 +224,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         post :create, as: :json
 
@@ -394,7 +394,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         put :put_update, params: { id: 1 }, as: :json
 
@@ -490,7 +490,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
       it "fails with invalid credentials" do
         request.env["HTTP_AUTHORIZATION"] =
           ActionController::HttpAuthentication::Basic
-            .encode_credentials("unauthorized", "123456")
+          .encode_credentials("unauthorized", "123456")
 
         patch :patch_update, params: patch_params(id: 1), as: :json
 
@@ -550,7 +550,10 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         user = company.users.first.tap(&:archive!)
         expect(user.archived?).to eq true
 
-        patch :patch_update, params: patch_params(id: 1, active: true), as: :json
+        patch \
+          :patch_update,
+          params: patch_params(id: 1, active: true),
+          as: :json
 
         expect(response.status).to eq 200
         expect(company.users.count).to eq 1
