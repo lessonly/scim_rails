@@ -18,7 +18,7 @@ module ScimRails
           content_type: CONTENT_TYPE
       when "show", "create", "put_update", "patch_update"
         render \
-          json: user_response(object),
+          json: object_response(object),
           status: status,
           content_type: CONTENT_TYPE
       end
@@ -38,19 +38,28 @@ module ScimRails
         "totalResults": counts.total,
         "startIndex": counts.start_index,
         "itemsPerPage": counts.limit,
-        "Resources": list_users(object)
+        "Resources": list_objects(object)
       }
     end
 
-    def list_users(users)
-      users.map do |user|
-        user_response(user)
+    def list_objects(objects)
+      objects.map do |object|
+        object_response(object)
       end
     end
 
-    def user_response(user)
-      schema = ScimRails.config.user_schema
-      find_value(user, schema)
+    def object_response(object)
+      schema =
+        case object
+        when ScimRails.config.scim_users_model
+          ScimRails.config.user_schema
+        when ScimRails.config.scim_groups_model
+          ScimRails.config.group_schema
+        else
+          raise ScimRails::ExceptionHandler::InvalidQuery,
+                "Unknown model: #{object}"
+        end
+      find_value(object, schema)
     end
 
 
@@ -61,20 +70,28 @@ module ScimRails
     # send those symbols to the model, and replace the symbol with
     # the return value.
 
-    def find_value(user, object)
-      case object
+    def find_value(object, schema)
+      case schema
       when Hash
-        object.each.with_object({}) do |(key, value), hash|
-          hash[key] = find_value(user, value)
+        schema.each.with_object({}) do |(key, value), hash|
+          hash[key] = find_value(object, value)
         end
-      when Array
-        object.map do |value|
-          find_value(user, value)
+      when Array, ActiveRecord::Associations::CollectionProxy
+        schema.map do |value|
+          find_value(object, value)
         end
+      when ScimRails.config.scim_users_model
+        find_value(schema, ScimRails.config.user_abbreviated_schema)
+      when ScimRails.config.scim_groups_model
+        find_value(schema, ScimRails.config.group_abbreviated_schema)
       when Symbol
-        user.public_send(object)
+        value = object.public_send(schema)
+        case value
+        when true, false, String, Integer, DateTime then value
+        else find_value(object, value)
+        end
       else
-        object
+        schema
       end
     end
   end
