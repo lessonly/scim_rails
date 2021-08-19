@@ -93,7 +93,7 @@ module ScimRails
         path_params = extract_path_params(operation)
         changed_attributes = permitted_params(path_params || operation["value"], "User").merge(get_multi_value_attrs(operation))
 
-        user.update!(changed_attributes.compact)
+        user.assign_attributes(changed_attributes.compact)
 
         active_param = extract_active_param(operation, path_params)
         status = patch_status(active_param)
@@ -103,6 +103,8 @@ module ScimRails
         provision_method = status ? ScimRails.config.user_reprovision_method : ScimRails.config.user_deprovision_method
         user.public_send(provision_method)
       end
+
+      user.save!
 
       ScimRails.config.after_scim_response.call(user, "UPDATED") unless ScimRails.config.after_scim_response.nil?
 

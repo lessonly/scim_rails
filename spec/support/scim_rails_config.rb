@@ -30,6 +30,7 @@ ScimRails.configure do |config|
     :last_name,
     :email,
     :test_attribute,
+    :department
   ]
 
   config.mutable_group_attributes = [
@@ -63,6 +64,9 @@ ScimRails.configure do |config|
       }
     ],
     testAttribute: :test_attribute,
+    "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": {
+      department: :department,
+    },
   }
 
   config.mutable_group_attributes_schema = {

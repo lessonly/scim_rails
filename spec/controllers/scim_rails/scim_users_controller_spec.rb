@@ -800,6 +800,15 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
               end
             end
           end
+
+          context "with urn:ietf:params:scim:schemas:extension:enterprise:2.0:User path" do
+            let(:patch_path) { "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:department" }
+            let(:patch_value) { Faker::Commerce.department }
+
+            it "updates :department attribute" do
+              expect(company_user.department).to eq(patch_value)
+            end
+          end
         end
 
         context "when add operation" do

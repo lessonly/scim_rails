@@ -59,7 +59,13 @@ module ScimRails
     end
 
     def extract_path_params(operation)
-      operation.key?("path") ? process_path(operation) : nil
+      return nil unless operation.key?("path")
+      
+      if operation["path"].include?("urn:ietf:params:scim:schemas:extension:enterprise:2.0:User")
+        return process_extension_schema_path(operation) 
+      end
+      
+      process_path(operation)
     end
 
     def extract_active_param(operation, path_params)
@@ -100,6 +106,12 @@ module ScimRails
 
         acc
       end
+    end
+
+    def process_extension_schema_path(operation)
+      key = operation["path"].split(":").last
+
+      {"urn:ietf:params:scim:schemas:extension:enterprise:2.0:User": { "#{key}": operation["value"] }}
     end
 
     # `process_filter_path` is a method that, like the `process_path`
@@ -238,34 +250,18 @@ module ScimRails
         deprovision_method = ScimRails.config.group_deprovision_method
       end
 
-      object.public_send(reprovision_method) if active?
-      object.public_send(deprovision_method) unless active?
-    end
-
-    def active?
-      active = params[:active]
-
-      case active
-      when true, "true", 1
-        true
-      when false, "false", 0
-        false
-      else
-        raise ActiveRecord::RecordInvalid
+      if patch_status(params[:active])
+        object.public_send(reprovision_method) 
+      else 
+        object.public_send(deprovision_method)
       end
     end
 
     def patch_status(active_param)
-      case active_param
-      when true, "true", 1
-        true
-      when false, "false", 0
-        false
-      when nil
-        nil
-      else
-        raise ScimRails::ExceptionHandler::InvalidActiveParam
-      end
+      # Must use .to_s.downcase to handle strings "True" and "False"
+      # Which is sent by Azure AD
+      # Other possible inputs (true, "true", false, "false", 0, 1, nil)
+      ActiveModel::Type::Boolean.new.cast(active_param.to_s.downcase)
     end
   end
 end
