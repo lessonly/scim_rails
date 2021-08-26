@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_03_31_202326) do
+ActiveRecord::Schema.define(version: 2021_08_19_053930) do
 
   create_table "companies", force: :cascade do |t|
     t.string "name", null: false
@@ -51,6 +51,7 @@ ActiveRecord::Schema.define(version: 2021_03_31_202326) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "scoped_attribute", default: true
+    t.string "department"
   end
 
 end
