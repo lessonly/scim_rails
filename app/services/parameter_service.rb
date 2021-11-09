@@ -12,52 +12,47 @@ module ParameterService
 
   # https://datatracker.ietf.org/doc/html/rfc7643#section-4
   SCIM_CORE_USER_SCHEMA = {
-    "id" => String,
-    "department" => String,
-    "userName" => String,
-    "displayName" => String,
-    "nickName" => String,
+    "id" => :value,
+    "department" => :value,
+    "userName" => :value,
+    "displayName" => :value,
+    "nickName" => :value,
     "name" => {
-      "formatted" => String,
-      "familyName" => String,
-      "givenName" => String,
-      "middleName" => String,
-      "honorificPrefix" => String,
-      "honorificSuffix" => String,
+      "formatted" => :value,
+      "familyName" => :value,
+      "givenName" => :value,
+      "middleName" => :value,
+      "honorificPrefix" => :value,
+      "honorificSuffix" => :value,
     },
-    "profileUrl" => String,
-    "title" => String,
-    "userType" => String,
-    "preferredLanguage" => String,
-    "locale" => String,
-    "timezone" => String,
-    "active" => String,
-    "password" => String,
+    "profileUrl" => :value,
+    "title" => :value,
+    "userType" => :value,
+    "preferredLanguage" => :value,
+    "locale" => :value,
+    "timezone" => :value,
+    "active" => :value,
+    "password" => :value,
     "emails" => [],
     "phoneNumbers" => [],
-    "ims" => String,
-    "photos" => String,
+    "ims" => :value,
+    "photos" => :value,
     "addresses" => {
-      "formatted" => String,
-      "streetAddress" => String,
-      "locality" => String,
-      "region" => String,
-      "postalCode" => String,
-      "country" => String,
+      "formatted" => :value,
+      "streetAddress" => :value,
+      "locality" => :value,
+      "region" => :value,
+      "postalCode" => :value,
+      "country" => :value,
     },
     "entitlements" => [],
     "roles" => [],
     "x509Certificates" => [],
   }
-  # def invalid_params(params, object_type)
-  #   raise "Not supported" unless object_type == "User"
-  #   schema = ScimRails.config.user_schema
-  #   schema.each do |schema_key, schema_value|
-  #   end
-  # end
 
   # Given a schema and a parameter hash this method
-  # will return
+  # will return an aray of parameters that do not exist
+  # or have a mismatched type in the schema
   def invalid_parameters(schema, parameters, parent_path: nil)
     invalid = []
 
