@@ -8,6 +8,9 @@ module ParameterService
 
     # patch
     'Operations',
+
+    # known
+    'schemas',
   ].freeze
 
   # https://datatracker.ietf.org/doc/html/rfc7643#section-4

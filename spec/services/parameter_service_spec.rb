@@ -123,6 +123,7 @@ RSpec.describe ParameterService, type: :service do
           "urn:ietf:params:scim:schemas:core:2.0:User" => { "c" => "d" },
           "urn:ietf:params:scim:foo" => { "bar" => "baz" },
           "Operations" => [],
+          "schemas" => [],
         })
 
         result = subject.invalid_parameters(schema, params)
