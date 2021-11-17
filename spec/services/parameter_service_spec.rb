@@ -1,6 +1,86 @@
 require "spec_helper"
 
 RSpec.describe ParameterService, type: :service do
+  describe "SCIM_CORE_USER_SCHEMA.contains?" do
+    let(:schema) { ParameterService::SCIM_CORE_USER_SCHEMA }
+
+    # Singular Simple Value Attributes
+    %w(
+       id
+       externalId
+       userName
+       displayName
+       nickName
+       profileUrl
+       title
+       userType
+       preferredLanguage
+       locale
+       timezone
+       active
+       password
+       employeeNumber
+       costCenter
+       organization
+       division
+       department
+    ).each do |attr|
+      it attr do
+        expect(schema).to have_key(attr), "Expected schema to have simple attribute #{attr}"
+        expect(schema[attr]).to be_kind_of(Symbol), "Expected schema attribute #{attr} to be a simple value!"
+      end
+    end
+
+    # Complex Types
+    {
+      meta: %w(
+        resourceType
+        created
+        lastModified
+        location
+        version
+      ),
+      name: %w(
+        formatted
+        familyName
+        givenName
+        middleName
+        honorificPrefix
+        honorificSuffix
+      ),
+    }.stringify_keys.each do |attr, sub_attrs|
+      it "#{attr} (and #{sub_attrs.length} sub-fields)" do
+        sub_schema = schema[attr]
+
+        expect(schema).to have_key(attr), "Expected schema to have root key #{attr}"
+        expect(schema[attr]).to be_kind_of(Hash), "Expected schema attribute #{attr} to be a Hash!"
+
+        sub_attrs.each do |sub_attr|
+          expect(sub_schema).to have_key(sub_attr), "Expected schema.#{attr} to have key #{sub_attr}"
+        end
+      end
+    end
+
+    # Muti-Valued Array Attributes
+    %w(
+        addresses
+        emails
+        phoneNumbers
+        ims
+        photos
+        groups
+        entitlements
+        roles
+        x509Certificates
+    ).each do |attr|
+      it "#{attr} (array)" do
+        expect(schema).to have_key(attr), "Expected schema to have root key #{attr}"
+        expect(schema[attr]).to be_kind_of(Array), "Expected schema attribute #{attr} to be an array!"
+      end
+    end
+
+  end
+
   describe ".invalid_parameters" do
     let(:schema) { ParameterService::SCIM_CORE_USER_SCHEMA }
     let(:good_params) do
@@ -56,6 +136,41 @@ RSpec.describe ParameterService, type: :service do
 
             result = subject.invalid_parameters(schema, params)
             expect(result).to be_empty
+          end
+        end
+      end
+    end
+
+    context "valid" do
+      context "core schema - " do
+        ParameterService::SCIM_CORE_USER_SCHEMA.each do |key, schema_metadata|
+           data =
+             case schema_metadata.class.name
+             when Hash.name
+               d = schema_metadata.dup
+               d.keys.each do |k|
+                 d[k] = Faker::Lorem.sentence
+               end
+               d
+             when Array.name
+               [Faker::Lorem.sentence]
+             when Symbol.name
+               Faker::Lorem.sentence
+             else
+               :fail
+             end
+
+           if data == :fail
+             it key.to_s do
+               fail "Unknown data type in schema :#{key} => #{schema_metadata.class}"
+             end
+           else
+             it key.to_s do
+               params = good_params.merge(key => data)
+
+               result = subject.invalid_parameters(schema, params)
+               expect(result).to be_empty
+             end
           end
         end
       end
