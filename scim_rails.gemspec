@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
 
   s.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   s.require_paths = ["lib"]
-  
+
   s.required_ruby_version = "~> 2.4"
   s.add_dependency "rails", "~> 5.0"
   s.add_runtime_dependency "jwt", ">= 1.5", "< 3.0"
@@ -33,4 +33,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "sqlite3", "~> 1.3.6"
   s.add_development_dependency "simplecov", "< 0.18.0"
   s.add_development_dependency "simplecov_json_formatter"
+  s.add_development_dependency "rubocop"
+  s.add_development_dependency "rubocop-rails"
+  s.add_development_dependency "rubocop-rspec"
 end

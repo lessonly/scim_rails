@@ -1,5 +1,7 @@
 module ScimRails
   class ScimUsersController < ScimRails::ApplicationController
+    before_action :check_allowed_parameters!, only: %i[create patch_update put_update delete]
+
     def index
       ScimRails.config.before_scim_response.call(request.params) unless ScimRails.config.before_scim_response.nil?
 
@@ -97,7 +99,7 @@ module ScimRails
 
         active_param = extract_active_param(operation, path_params)
         status = patch_status(active_param)
-        
+
         next if status.nil?
 
         provision_method = status ? ScimRails.config.user_reprovision_method : ScimRails.config.user_deprovision_method
@@ -116,7 +118,7 @@ module ScimRails
 
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       user.update!(ScimRails.config.custom_user_attributes)
-      
+
       user.destroy
 
       ScimRails.config.after_scim_response.call(user, "DELETED") unless ScimRails.config.after_scim_response.nil?
@@ -128,6 +130,26 @@ module ScimRails
 
     def get_multi_value_attrs(operation)
       schema_hash = contains_square_brackets?(operation["path"]) ? multi_attr_type_to_value(process_filter_path(operation)) : {}
+    end
+
+    def check_allowed_parameters!
+      schema = ScimRails.config.user_schema.dup
+      if schema.fetch(:schemas, []).include?("urn:ietf:params:scim:schemas:core:2.0:User")
+        schema.delete(:schemas)
+        schema.merge!(ParameterService::SCIM_CORE_USER_SCHEMA)
+      end
+
+      bad_fields = ParameterService.invalid_parameters(schema, params)
+      return if bad_fields.empty?
+
+      json_response(
+        {
+          schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
+          detail: "Unknown fields: #{bad_fields.join(", ")}",
+          status: "422"
+        },
+        :unprocessable_entity,
+      )
     end
   end
 end
