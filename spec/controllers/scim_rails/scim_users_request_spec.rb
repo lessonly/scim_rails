@@ -44,7 +44,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
       post_request("text/csv")
 
       expect(request.params).not_to include :name
-      expect(response.status).to eq 422
+      expect(response.status).to eq 400
       expect(company.users.count).to eq 0
     end
   end

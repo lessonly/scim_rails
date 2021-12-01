@@ -148,7 +148,7 @@ module ScimRails
           detail: "Unknown fields: #{bad_fields.join(", ")}",
           status: "422"
         },
-        :unprocessable_entity,
+        :bad_request
       )
     end
   end

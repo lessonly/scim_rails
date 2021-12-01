@@ -291,7 +291,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(company.users.count).to eq 1
       end
 
-      it "returns 422 if required params are missing" do
+      it "returns 400 if required params are missing" do
         post :create, params: {
           name: {
             familyName: "User"
@@ -303,7 +303,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           ]
         }
 
-        expect(response.status).to eq 422
+        expect(response.status).to eq 400
         expect(company.users.count).to eq 0
       end
 
@@ -493,7 +493,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(response.status).to eq 404
       end
 
-      it "is returns 422 with incomplete request" do
+      it "is returns 400 with incomplete request" do
         put :put_update, params: {
           id: 1,
           userName: "test@example.com",
@@ -505,7 +505,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           active: "true"
         }
 
-        expect(response.status).to eq 422
+        expect(response.status).to eq 400
       end
 
       it "updates attributes corresponding to type-attribute mappings" do
@@ -597,7 +597,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
         expect(response.status).to eq 404
       end
 
-      it "returns 422 error for an invalid op" do
+      it "returns 400 error for an invalid op" do
         patch :patch_update, params: {
           id: 1,
           Operations: [
@@ -607,7 +607,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :controller do
           ]
         }
 
-        expect(response.status).to eq(422)
+        expect(response.status).to eq(400)
 
         response_body = JSON.parse(response.body)
         expect(response_body.dig("schemas", 0)).to eq "urn:ietf:params:scim:api:messages:2.0:Error"
