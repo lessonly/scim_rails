@@ -68,9 +68,9 @@ module ScimRails
           {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
             detail: "Invalid PATCH request. This PATCH endpoint only 'replace' operations.",
-            status: "422"
+            status: "400"
           },
-          :unprocessable_entity
+          :bad_request
         )
       end
 
@@ -79,9 +79,9 @@ module ScimRails
           {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
             detail: "Invalid PATCH request. The operations supported are 'add', 'replace', and 'remove'",
-            status: "422"
+            status: "400"
           },
-          :unprocessable_entity
+          :bad_request
         )
       end
 
@@ -112,9 +112,9 @@ module ScimRails
           {
             schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
             detail: "Invalid PATCH request. The 'path' was not able to be processed",
-            status: "422"
+            status: "400"
           },
-          :unprocessable_entity
+          :bad_request
         )
       end
 
@@ -145,9 +145,9 @@ module ScimRails
             {
               schemas: ["urn:ietf:params:scim:api:messages:2.0:Error"],
               detail: e.message,
-              status: "422"
+              status: "400"
             },
-            :unprocessable_entity
+            :bad_request
           )
         end
       end
