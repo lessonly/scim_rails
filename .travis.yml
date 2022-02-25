@@ -8,6 +8,7 @@ gemfile:
   - gemfiles/rails_5.gemfile
   - gemfiles/rails_6.gemfile
   - gemfiles/rails_6.1.gemfile
+  - gemfiles/rails_7.gemfile
 before_script:
   - bin/rails db:migrate RAILS_ENV=test
 before_install:
