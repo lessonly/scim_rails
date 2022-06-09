@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    scim_rails (0.3.2)
+    scim_rails (0.3.3)
       jwt (>= 1.5, < 3.0)
       nokogiri (~> 1.12.5)
       rack (~> 2.2.3)
