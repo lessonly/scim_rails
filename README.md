@@ -4,6 +4,9 @@
 
 # ScimRails
 
+## Notice
+Lessonly by Seismic is not actively monitoring this project for contributions. There are talks to consider resources for this project in winter 2022/2023
+
 NOTE: This Gem is not yet fully SCIM complaint. It was developed with the main function of interfacing with Okta. There are features of SCIM that this Gem does not implement as described in the SCIM documentation or that have been left out completely.
 
 #### What is SCIM?
@@ -264,16 +267,6 @@ ScimRails.configure do |config|
 end
 ```
 
-## Contributing
-
-### [Code of Conduct](https://github.com/lessonly/scim_rails/blob/master/CODE_OF_CONDUCT.md)
-
-### Pull Requests
-
-Pull requests are welcome and encouraged! Please follow the default template format.
-
-[How to create a pull request from a fork.](https://help.github.com/articles/creating-a-pull-request-from-a-fork/)
-
 ### Getting Started
 
 Clone (or fork) the project.
@@ -300,15 +293,6 @@ Specs can be run with `rspec` at the top level of the project (if you run `rspec
 
 All specs should be passing. (The dummy app will need to be setup first.)
 
-## Current Maintainers
-
-Maintainers:
-- Are active contributors
-- Help set project direction
-- Merge contributions from contributors
-
-- [@wernull](https://github.com/wernull)
-- [@rreinhardt9](https://github.com/rreinhardt9)
 
 ## License
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
