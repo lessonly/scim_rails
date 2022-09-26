@@ -140,7 +140,7 @@ module ScimRails
     end
 
     def valid_patch_operation?(operation)
-      operation["op"].casecmp("replace") &&
+      operation["op"].casecmp?("replace") &&
         operation["value"] &&
         [true, false].include?(operation["value"]["active"])
     end
