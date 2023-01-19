@@ -7,7 +7,7 @@ module ScimRails
         query = ScimRails::ScimQueryParser.new(params[:filter])
 
         groups = @company.public_send(ScimRails.config.scim_groups_scope)
-                         .where("#{ScimRails.config.scim_groups_model.connection.quote_column_name(query.group_attribute)} LIKE ?", "%" + query.parameter + "+")
+                         .where("#{ScimRails.config.scim_groups_model.connection.quote_column_name(query.group_attribute)} LIKE ?", "%" + query.parameter + "%")
                          .order(ScimRails.config.scim_groups_list_order)
       else
         groups = @company.public_send(ScimRails.config.scim_groups_scope)
