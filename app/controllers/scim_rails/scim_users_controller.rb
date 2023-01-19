@@ -93,7 +93,7 @@ module ScimRails
         raise ScimRails::ExceptionHandler::UnsupportedPatchRequest unless ["replace", "add", "remove"].include?(operation["op"].downcase)
 
         path_params = extract_path_params(operation)
-        changed_attributes = permitted_params(path_params || operation["value"], "User").merge(get_multi_value_attrs(operation))
+        changed_attributes = permitted_params(path_params || flat_keys_to_nested(operation["value"].to_unsafe_h), "User").merge(get_multi_value_attrs(operation))
 
         user.assign_attributes(changed_attributes.compact)
 
@@ -150,6 +150,15 @@ module ScimRails
         },
         :bad_request
       )
+    end
+
+    # {"a.b.c"=>"v", "b.c.d"=>"c"} ---> {:a=>{:b=>{:c=>"v"}}, :b=>{:c=>{:d=>"c"}}}
+    def flat_keys_to_nested(hash)
+      hash.each_with_object({}) do |(key,value), all|
+        key_parts = key.split('.').map!(&:to_sym)
+        leaf = key_parts[0...-1].inject(all) { |h, k| h[k] ||= {} }
+        leaf[key_parts.last] = value
+      end
     end
   end
 end
