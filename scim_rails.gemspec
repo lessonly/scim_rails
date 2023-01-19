@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = "~> 2.4"
   s.add_dependency "rack", "~> 2.2.3"
-  s.add_dependency "rails", "~> 5.2.7.1"
+  s.add_dependency "rails", ">= 5.0", "< 6.1"
   s.add_dependency "nokogiri", "~> 1.13.6"
   s.add_runtime_dependency "jwt", ">= 1.5", "< 3.0"
   s.test_files = Dir["spec/**/*"]
@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "faker"
   s.add_development_dependency "byebug"
   s.add_development_dependency "awesome_print"
-  s.add_development_dependency "sqlite3", "~> 1.3.6"
+  s.add_development_dependency "sqlite3", "~> 1.3", "< 1.5"
   s.add_development_dependency "simplecov", "< 0.18.0"
   s.add_development_dependency "simplecov_json_formatter"
   s.add_development_dependency "rubocop"
