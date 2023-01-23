@@ -125,6 +125,9 @@ module ScimRails
 
       json_scim.delete(params[:excludedAttributes].to_sym) if params[:excludedAttributes].present?
 
+
+      json_scim.update(externalId: params[:Operations][0][:value][:externalId]) if params[:Operations].present?
+
       json_scim
     end
 
