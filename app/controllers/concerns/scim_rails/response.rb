@@ -123,6 +123,8 @@ module ScimRails
         json_scim[:members] << find_value(member, member_schema)
       end
 
+      json_scim.delete(params[:excludedAttributes].to_sym) if params[:excludedAttributes].present?
+
       json_scim
     end
 

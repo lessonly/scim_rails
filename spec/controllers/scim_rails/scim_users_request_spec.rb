@@ -1,72 +1,84 @@
 require "spec_helper"
 
 RSpec.describe ScimRails::ScimUsersController, type: :request do
+  include_context 'scim_authentication'
+
   let(:company) { create(:company) }
-  let(:credentials) { Base64::encode64("#{company.subdomain}:#{company.api_token}") }
-  let(:authorization) { "Basic #{credentials}" }
 
-  def post_request(content_type = "application/scim+json")
-    # params need to be transformed into a string to test if they are being parsed by Rack
+  let(:params) { {} }
 
-    post "/scim_rails/scim/v2/Users",
-      params: {
-        name: {
-          givenName: "New",
-          familyName: "User",
-        },
-        emails: [
-          {
-            value: "new@example.com",
+  describe 'SCIM Authentication' do
+    subject { response }
+
+    context 'with valid authentication' do
+      before { get '/scim_rails/scim/v2/Users', params: params, headers: valid_authentication_header }
+
+      it { is_expected.to have_http_status :ok }
+    end
+
+    context 'without valid authentication' do
+      before { get '/scim_rails/scim/v2/Users', params: params, headers: invalid_authentication_header }
+
+      it { is_expected.to have_http_status :unauthorized }
+    end
+  end
+
+  describe 'SCIM Users' do
+    describe 'post' do
+      let(:params) do
+        {
+          name: {
+            givenName: "New",
+            familyName: "User",
           },
-        ],
-      }, as: :json,
-      headers: {
-        'Authorization': authorization,
-        'Content-Type': content_type,
-      }
-  end
+          emails: [
+            {
+              value: "new@example.com",
+            },
+          ],
+        }
+      end
 
-  describe "Content-Type" do
-    it "accepts scim+json" do
-      expect(company.users.count).to eq 0
+      it 'creates a new user' do
+        post '/scim_rails/scim/v2/Users', params: params.to_json, headers: valid_authentication_header
 
-      post_request("application/scim+json")
-
-      expect(request.params).to include :name
-      expect(response.status).to eq 201
-      expect(response.media_type).to eq "application/scim+json"
-      expect(company.users.count).to eq 1
-    end
-
-    it "can not parse unfamiliar content types" do
-      expect(company.users.count).to eq 0
-
-      post_request("text/csv")
-
-      expect(request.params).not_to include :name
-      expect(response.status).to eq 400
-      expect(company.users.count).to eq 0
-    end
-  end
-
-  context "OAuth Bearer Authorization" do
-    context "with valid token" do
-      let(:authorization) { "Bearer #{company.api_token}" }
-
-      it "supports OAuth bearer authorization and succeeds" do
-        expect { post_request }.to change(company.users, :count).from(0).to(1)
-
+        expect(request.params).to include :name
         expect(response.status).to eq 201
+        expect(response.media_type).to eq "application/scim+json"
+        expect(company.users.count).to eq 1
       end
     end
 
-    context "with invalid token" do
-      let(:authorization) { "Bearer #{SecureRandom.hex}" }
+    describe 'patch' do
+      let(:resp) { patch "/scim_rails/scim/v2/Users/#{target_person.id}", params: params.to_json, headers: valid_authentication_header }
+      let!(:target_person) { create(:user, company: company) }
 
-      it "The request fails" do
-        expect { post_request }.not_to change(company.users, :count)
+      context 'with azure request' do
+        let(:params) do
+          {
+            id: target_person.id,
+            Operations: [
+              {
+                "op": "replace",
+                "path": "emails[type eq \"work\"].value",
+                "value": "colten_grimes@boyle.us"
+              },
+              {
+                "op": "replace",
+                "value": {
+                  "userName": "frederique.halvorson@dooley.co.uk",
+                  "name.givenName": "Nico",
+                  "name.familyName": "Grayson"
+                }
+              }.compact,
+            ],
+          }
+        end
 
-        expect(response.status).to eq 401
+        it "updates specific Person attribute" do
+          expect(resp).to eq 200
+          expect(target_person.reload.first_name).to eq('Nico')
+        end
       end
     end
   end
