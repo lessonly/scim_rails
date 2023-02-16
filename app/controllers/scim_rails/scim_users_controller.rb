@@ -155,7 +155,15 @@ module ScimRails
     # {"a.b.c"=>"v", "b.c.d"=>"c"} ---> {:a=>{:b=>{:c=>"v"}}, :b=>{:c=>{:d=>"c"}}}
     def flat_keys_to_nested(hash)
       hash.each_with_object({}) do |(key,value), all|
-        key_parts = key.split('.').map(&:to_sym)
+        key_parts = if key.include?('name')
+          key.split('.').map(&:to_sym)
+        elsif key.include?('urn:ietf:params:scim:schemas:extension:enterprise:2.0:User')
+          # This will grab the last part of the key, which is the attribute name
+          key.split(/\:(?=[^:]*$)/).map(&:to_sym)
+        else
+          [key.to_sym]
+        end
+
         leaf = key_parts[0...-1].inject(all) { |h, k| h[k] ||= {} }
         leaf[key_parts.last] = value
       end
