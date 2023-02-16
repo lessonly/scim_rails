@@ -80,7 +80,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
         it "updates specific Person attribute" do
           expect(resp).to eq 200
           expect(target_person.reload.first_name).to eq('Nico')
-          expect(subject.company).to eq('Sample Company')
+          expect(subject.organization).to eq('Sample Company')
           expect(subject.department).to eq('Sample Department')
         end
       end
