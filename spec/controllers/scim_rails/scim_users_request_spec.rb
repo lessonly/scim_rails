@@ -68,7 +68,8 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
                 "value": {
                   "userName": "frederique.halvorson@dooley.co.uk",
                   "name.givenName": "Nico",
-                  "name.familyName": "Grayson"
+                  "name.familyName": "Grayson",
+                  "urn:ietf:params:scim:schemas:extension:enterprise:2.0:User:department": "Sample Department"
                 }
               }.compact,
             ],
@@ -78,6 +79,7 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
         it "updates specific Person attribute" do
           expect(resp).to eq 200
           expect(target_person.reload.first_name).to eq('Nico')
+          expect(target_person.reload.department).to eq('Sample Department')
         end
       end
     end
