@@ -40,7 +40,7 @@ module ScimRails
       if ScimRails.config.scim_user_prevent_update_on_create
         user = @company.public_send(ScimRails.config.scim_users_scope).create!(user_params)
       else
-        username_key = ScimRails.config.queryable_user_attributes[:userName]
+        username_key = ScimRails.config.queryable_user_attributes[:email]
 
         find_by_params = Hash.new
 
