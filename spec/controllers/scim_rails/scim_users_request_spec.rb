@@ -74,6 +74,10 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
             ScimRails.config.scim_user_prevent_update_on_create = false
           end
 
+          after do
+            ScimRails.config.scim_user_prevent_update_on_create = true
+          end
+
           it 'updates the existing user' do
             post '/scim_rails/scim/v2/Users', params: params.to_json, headers: valid_authentication_header
 
