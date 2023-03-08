@@ -47,6 +47,47 @@ RSpec.describe ScimRails::ScimUsersController, type: :request do
         expect(response.media_type).to eq "application/scim+json"
         expect(company.users.count).to eq 1
       end
+
+      context 'when user already exists' do
+        let(:first_name) { Faker::Name.first_name }
+        let(:last_name) { Faker::Name.last_name }
+        let(:email) { 'new@example.com' }
+        let!(:user) { create(:user, first_name: first_name, last_name: last_name, company: company, email: email) }
+
+        context 'when scim_user_prevent_update_on_create is true' do
+          before do
+            ScimRails.config.scim_user_prevent_update_on_create = true
+          end
+
+          after do
+            ScimRails.config.scim_user_prevent_update_on_create = false
+          end
+
+          it 'does not update the existing user' do
+            post '/scim_rails/scim/v2/Users', params: params.to_json, headers: valid_authentication_header
+
+            expect(response.status).to eq 409
+            expect(company.users.count).to eq 1
+            expect(company.users.first.first_name).to eq first_name
+            expect(company.users.first.last_name).to eq last_name
+          end
+        end
+
+        context 'when scim_user_prevent_update_on_create is false' do
+          before do
+            ScimRails.config.scim_user_prevent_update_on_create = false
+          end
+
+          it 'updates the existing user' do
+            post '/scim_rails/scim/v2/Users', params: params.to_json, headers: valid_authentication_header
+
+            expect(response.status).to eq 201
+            expect(company.users.count).to eq 1
+            expect(company.users.first.first_name).to eq 'New'
+            expect(company.users.first.last_name).to eq 'User'
+          end
+        end
+      end
     end
 
     describe 'patch' do
