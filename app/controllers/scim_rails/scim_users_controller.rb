@@ -42,9 +42,6 @@ module ScimRails
       else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
         email_key = ScimRails.config.queryable_user_attributes[:email]
-
-        byebug
-
         user = username_key.present? ? find_user_by_key(username_key, user_params) : find_user_by_key(email_key, user_params)
 
         user.update!(user_params)
