@@ -42,7 +42,13 @@ module ScimRails
       else
         username_key = ScimRails.config.queryable_user_attributes[:userName]
         email_key = ScimRails.config.queryable_user_attributes[:email]
-        user = username_key.present? ? find_user_by_key(username_key, user_params) : find_user_by_key(email_key, user_params)
+        user_by_username = find_user_by_key(username_key, user_params)
+
+        # This logic solves two problems:
+        # 1. When searching for a user by username, we will find users that have username populated. This only occurs if the user was created by SCIM.
+        # 2. When searching for a user by email, we will find users that have emails populated. This will allow us to migrate users from a non-SCIM user to a SCIM user.
+        # The second item will prevent duplicate host from being created in the guest-server.
+        user = user_by_username.persisted? ? user_by_username : find_user_by_key(email_key, user_params)
 
         user.update!(user_params)
       end
