@@ -40,16 +40,16 @@ module ScimRails
       if ScimRails.config.scim_user_prevent_update_on_create
         user = @company.public_send(ScimRails.config.scim_users_scope).create!(user_params)
       else
-        username_key = ScimRails.config.queryable_user_attributes[:email]
+        username_key = ScimRails.config.queryable_user_attributes[:userName]
+        email_key = ScimRails.config.queryable_user_attributes[:email]
+        user_by_username = find_user_by_key(username_key, user_params)
 
-        find_by_params = Hash.new
+        # This logic solves two problems:
+        # 1. When searching for a user by username, we will find users that have username populated. This only occurs if the user was created by SCIM.
+        # 2. When searching for a user by email, we will find users that have emails populated. This will allow us to migrate users from a non-SCIM user to a SCIM user.
+        # The second item will prevent duplicate host from being created in the guest-server.
+        user = user_by_username.persisted? ? user_by_username : find_user_by_key(email_key, user_params)
 
-        find_by_params[username_key] = user_params[username_key]
-        find_by_params[ScimRails.config.basic_auth_model.to_s.underscore] = @company
-
-        user = ScimRails.config.scim_users_model
-          .unscoped # Specific to our use case and should be changed back after we remove the default_scope from our "User" model
-          .find_or_initialize_by(find_by_params)
         user.update!(user_params)
       end
       update_status(user) unless params[:active].nil?
@@ -167,6 +167,14 @@ module ScimRails
         leaf = key_parts[0...-1].inject(all) { |h, k| h[k] ||= {} }
         leaf[key_parts.last] = value
       end
+    end
+
+    def find_user_by_key(key, user_params)
+      find_by_params = Hash.new
+      find_by_params[key] = user_params[key]
+      find_by_params[ScimRails.config.basic_auth_model.to_s.underscore] = @company
+
+      ScimRails.config.scim_users_model.unscoped.find_or_initialize_by(find_by_params)
     end
   end
 end
