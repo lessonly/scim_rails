@@ -14,7 +14,7 @@ module ScimRails
         it "returns scim+json content type" do
           get :get_schema, params: { id: 1 }
   
-          expect(response.content_type).to eq("application/scim+json")
+          expect(response.media_type).to eq("application/scim+json")
         end
   
         it "fails with no credentials" do
@@ -44,7 +44,7 @@ module ScimRails
         it "returns scim+json content type" do
           get :get_schema, params: { id: 1 }
   
-          expect(response.content_type).to eq("application/scim+json")
+          expect(response.media_type).to eq("application/scim+json")
         end
   
         it "is successful with valid credentials" do
