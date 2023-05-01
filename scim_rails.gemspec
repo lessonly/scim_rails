@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = "~> 2.7"
   s.add_dependency "rack", "~> 2.2.3"
-  s.add_dependency "rails", ">= 5.0", "< 6.1"
+  s.add_dependency "rails", "~> 6.1.7", ">= 6.1.7.3"
   s.add_dependency "nokogiri", "~> 1.13.6"
   s.add_runtime_dependency "jwt", ">= 1.5", "< 3.0"
   s.test_files = Dir["spec/**/*"]
@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "bundler"
   s.add_development_dependency "factory_bot_rails"
   s.add_development_dependency "rake", "~> 13.0"
-  s.add_development_dependency "rspec-rails", "~> 3.0"
+  s.add_development_dependency "rspec-rails", "~> 6.0"
   s.add_development_dependency "pry-rescue"
   s.add_development_dependency "faker"
   s.add_development_dependency "byebug"
