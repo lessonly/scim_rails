@@ -43,12 +43,12 @@ module ScimRails
     end
 
     def show
-      user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
+      user = find_user
       json_scim_response(object: user)
     end
 
     def put_update
-      user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
+      user = find_user
       update_status(user) unless put_active_param.nil?
       user.update!(permitted_user_params)
       json_scim_response(object: user)
@@ -57,12 +57,16 @@ module ScimRails
     # TODO: PATCH will only deprovision or reprovision users.
     # This will work just fine for Okta but is not SCIM compliant.
     def patch_update
-      user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
+      user = find_user
       update_status(user)
       json_scim_response(object: user)
     end
 
     private
+
+    def find_user
+      @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
+    end
 
     def permitted_user_params
       ScimRails.config.mutable_user_attributes.each.with_object({}) do |attribute, hash|
