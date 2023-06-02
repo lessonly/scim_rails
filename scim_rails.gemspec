@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = "~> 2.7"
   s.add_dependency "rack", "~> 2.2.3"
   s.add_dependency "rails", "~> 6.1.7", ">= 6.1.7.3"
-  s.add_dependency "nokogiri", "~> 1.13.6"
+  s.add_dependency "nokogiri"
   s.add_runtime_dependency "jwt", ">= 1.5", "< 3.0"
   s.test_files = Dir["spec/**/*"]
 
