@@ -1,17 +1,16 @@
-version: 2.1
-orbs:
-  ruby: circleci/ruby@0.1.2 
-
 jobs:
   build:
     docker:
-      - image: circleci/ruby:2.6.3
+      - image: cimg/ruby:2.7.7
     steps:
       - checkout
-      - ruby/bundle-install
+      - run: ruby --version
+      - run:
+          name: Install bundler
+          command: gem install bundler --version '~> 2.4.12'
       - run:
           name: Setup dummy app
-          command:   cd spec/dummy && bin/setup
+          command: cd spec/dummy && bin/setup
       - run:
           name: Setup Code Climate test-reporter
           command: |

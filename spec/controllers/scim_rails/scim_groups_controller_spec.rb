@@ -11,7 +11,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before { get :index }
 
       it "returns scim+json content type" do
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -35,7 +35,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
 
       it 'returns scim+json content type' do
         get :index
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it 'is successful' do
@@ -140,7 +140,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before { get :show, params: { id: 1 } }
 
       it "returns scim+json content type" do
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -170,7 +170,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       it "returns scim+json content type" do
         get :show, params: { id: 1 }
 
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "returns :not_found for invalid id" do
@@ -207,7 +207,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before { post :create }
 
       it "returns scim+json content type" do
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -240,7 +240,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
             members: []
           }
 
-          expect(response.content_type).to eq "application/scim+json"
+          expect(response.media_type).to eq "application/scim+json"
         end
 
         it "is successful" do
@@ -336,7 +336,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before { put :put_update, params: { id: 1 } }
 
       it "returns scim+json content type" do
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -373,7 +373,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         it "returns scim+json content type" do
           put :put_update, params: put_params(id: target_group.id), as: :json
 
-          expect(response.content_type).to eq("application/scim+json")
+          expect(response.media_type).to eq("application/scim+json")
         end
 
         it "successfully updates a group" do
@@ -518,7 +518,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
       before { patch :patch_update, params: { id: 1 } }
 
       it "returns scim+json content type" do
-        expect(response.content_type).to eq "application/scim+json"
+        expect(response.media_type).to eq "application/scim+json"
       end
 
       it "fails with no credentials" do
@@ -568,7 +568,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         let(:patch_value) { nil }
 
         it 'returns scim+json content type' do
-          expect(response.content_type).to eq("application/scim+json")
+          expect(response.media_type).to eq("application/scim+json")
         end
 
         context "when group id is invalid" do
@@ -943,7 +943,7 @@ RSpec.describe ScimRails::ScimGroupsController, type: :controller do
         before { delete :delete, params: { id: 1 } }
 
         it "returns scim+json content type" do
-          expect(response.content_type).to eq "application/scim+json"
+          expect(response.media_type).to eq "application/scim+json"
         end
 
         it "fails with no credentials" do

@@ -15,7 +15,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
       it "returns scim+json content type" do
         get :resource_user
 
-        expect(response.content_type).to eq("application/scim+json")
+        expect(response.media_type).to eq("application/scim+json")
       end
 
       it "fails with no credentials" do
@@ -43,7 +43,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
       it "returns scim+json content type" do
         get :resource_user
 
-        expect(response.content_type).to eq("application/scim+json")
+        expect(response.media_type).to eq("application/scim+json")
       end
 
       it "is successful with valid credentials" do
@@ -99,7 +99,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
       it "returns scim+json content type" do
         get :resource_group
 
-        expect(response.content_type).to eq("application/scim+json")
+        expect(response.media_type).to eq("application/scim+json")
       end
 
       it "fails with no credentials" do
@@ -127,7 +127,7 @@ RSpec.describe ScimRails::ScimResourceController, type: :controller do
       it "returns scim+json content type" do
         get :resource_group
 
-        expect(response.content_type).to eq("application/scim+json")
+        expect(response.media_type).to eq("application/scim+json")
       end
 
       it "is successful with valid credentials" do
