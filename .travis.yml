@@ -1,6 +1,7 @@
 language: ruby
 cache: bundler
 rvm:
+  - 3.2
   - 2.7
   - 2.6
 gemfile:
