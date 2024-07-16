@@ -1,6 +1,7 @@
 module ScimRails
   class ScimUsersController < ScimRails::ApplicationController
     def index
+      Rails.logger.warn("ScimRails::ScimUsersController: index: request.original_url #{request.original_url} request.params: #{params.to_json}")
       if params[:filter].present?
         query = ScimRails::ScimQueryParser.new(params[:filter])
 
@@ -27,6 +28,7 @@ module ScimRails
     end
 
     def create
+      Rails.logger.warn("ScimRails::ScimUsersController: create: request.original_url #{request.original_url} request.params: #{params.to_json}")
       if ScimRails.config.scim_user_prevent_update_on_create
         user = @company.public_send(ScimRails.config.scim_users_scope).create!(permitted_user_params)
       else
@@ -43,11 +45,13 @@ module ScimRails
     end
 
     def show
+      Rails.logger.warn("ScimRails::ScimUsersController: show: request.original_url #{request.original_url} request.params: #{params.to_json}")
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       json_scim_response(object: user)
     end
 
     def put_update
+      Rails.logger.warn("ScimRails::ScimUsersController: put_update: request.original_url #{request.original_url} request.params: #{params.to_json}")
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       update_status(user) unless put_active_param.nil?
       user.update!(permitted_user_params)
@@ -57,6 +61,7 @@ module ScimRails
     # TODO: PATCH will only deprovision or reprovision users.
     # This will work just fine for Okta but is not SCIM compliant.
     def patch_update
+      Rails.logger.warn("ScimRails::ScimUsersController: patch_update: request.original_url #{request.original_url} request.params: #{params.to_json}")
       user = @company.public_send(ScimRails.config.scim_users_scope).find(params[:id])
       update_status(user)
       json_scim_response(object: user)
