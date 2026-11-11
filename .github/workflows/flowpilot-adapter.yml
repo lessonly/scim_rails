@@ -1,0 +1,85 @@
+# .github/workflows/flowpilot-adapter.yml
+#
+# Thin call-bridge between application repos and the centrally-owned reusable workflows
+# in ai-enablement-hub. This file declares the real event triggers and dispatches each
+# one to the matching reusable workflow via workflow_call:
+#   - all events -> flowpilot-orchestrator.reusable.yml
+#       Unrecognised events are discarded by the decide step inside the reusable orchestrator.
+#   - issue_comment / pull_request_review_comment / issues / pull_request_review
+#       -> claude.reusable.yml
+#       issue_comment reaches both jobs; the orchestrator handles /run|/rerun, Claude handles the rest.
+# It must not contain orchestration or Claude Code logic itself.
+
+name: FlowPilot Adapter
+
+on:
+  pull_request:
+    types:
+      - assigned
+      - synchronize
+      - closed
+  repository_dispatch:
+    types:
+      - flowpilot-stage
+  issue_comment:
+    types:
+      - created
+  pull_request_review_comment:
+    types:
+      - created
+  issues:
+    types:
+      - opened
+      - assigned
+  pull_request_review:
+    types:
+      - submitted
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  checks: write
+  actions: write
+  id-token: write
+
+jobs:
+  flowpilot-orchestrator:
+    name: FlowPilot orchestrator
+    # No if-guard here — all events are forwarded; the decide step in the reusable orchestrator
+    # handles routing and discards unrecognised patterns.
+    concurrency:
+      group: flowpilot-orchestrator-${{ github.repository }}-${{ github.event.pull_request.number || github.event.client_payload.pr_number || github.run_id }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      checks: write
+      actions: write
+      id-token: write
+    uses: seismic/ai-enablement-hub/.github/workflows/flowpilot-orchestrator.reusable.yml@master
+    with:
+      flowpilot-assignee: seismic-flowpilot
+      handoff-stage: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.stage || '' }}
+      handoff-source: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.source || '' }}
+      handoff-pr-number: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.pr_number && format('{0}', github.event.client_payload.pr_number) || '' }}
+      handoff-head-sha: ${{ github.event_name == 'repository_dispatch' && github.event.client_payload.head_sha || '' }}
+    secrets: inherit
+
+  claude:
+    name: Claude Code
+    if: ${{ github.event_name == 'issue_comment' || github.event_name == 'pull_request_review_comment' || github.event_name == 'issues' || github.event_name == 'pull_request_review' }}
+    concurrency:
+      group: claude-code-${{ github.repository }}-${{ github.event.pull_request.number || github.event.issue.number || github.run_id }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    uses: seismic/ai-enablement-hub/.github/workflows/claude.reusable.yml@master
+    with:
+      flowpilot-assignee: seismic-flowpilot
+    secrets: inherit
