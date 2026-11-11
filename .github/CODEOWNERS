@@ -1,0 +1,17 @@
+# ==========================================
+# Flowpilot Assignment Metadata
+# ==========================================
+# flowpilot-default-reviewers: # change here
+
+# ==========================================
+# Workflow Ownership
+# ==========================================
+
+#.github/** # change here
+#.claude/** # change here
+
+# ==========================================
+# Global Ownership
+# ==========================================
+
+* @automation-seismic
